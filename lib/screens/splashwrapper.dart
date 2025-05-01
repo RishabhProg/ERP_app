@@ -22,6 +22,7 @@ class SplashWrapper extends StatelessWidget {
       builder: (context, state) {
         if (state is AuthLoading) {
           return const Scaffold(
+            backgroundColor: Color(0xFF1E1E1E),
             body: Center(child: CircularProgressIndicator()),
           );
         } else if (state is AuthSuccess) {

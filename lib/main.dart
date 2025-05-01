@@ -3,6 +3,7 @@ import 'package:erp_app/bloc/auth_bloc/auth_bloc.dart';
 import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_bloc.dart';
 import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
 import 'package:erp_app/bloc/auth_bloc/auth_event.dart';
+import 'package:erp_app/models/login_response.dart';
 import 'package:erp_app/repository/attendance_repo.dart';
 import 'package:erp_app/repository/final_attendance_repo.dart';
 import 'package:erp_app/screens/attendance_info.dart';
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<AuthBloc>(
           create: (context) => AuthBloc(authRepository)..add(CheckAuthStatus()),
         ),
-
+       
         BlocProvider(create: (_) => AttendanceBloc(AttendanceRepository())),
         // Add more BLoCs here if needed
       ],

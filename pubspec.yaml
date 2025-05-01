@@ -45,10 +45,27 @@ dependencies:
   table_calendar: ^3.2.0
   flutter_secure_storage: ^9.2.4
   provider: ^6.1.2
+  google_fonts: ^6.2.1
+  circlify: ^1.2.1
+  intl:
+  
+  
+  
+  
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.2
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/graduation-hat.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/graduation-hat.png"    
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -65,11 +82,14 @@ flutter:
   assets:
     - assets/background.jpeg
     - assets/animation.json
+    - assets/loginback.json
+    - assets/night.json
     - assets/centerimage2.jpeg
     - assets/animation2.json
     - assets/back1.json
     - assets/org.png
     - assets/course1.jpg
+    - assets/graduation-hat.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

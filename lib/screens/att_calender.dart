@@ -1,75 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class AttendanceCalendarScreen extends StatelessWidget {
+class AttendanceCalendarDialog extends StatelessWidget {
+  final List<Map<String, String>> attendanceData;
   final String subject;
-  final List<Map<String, dynamic>> attendanceData;
 
-  const AttendanceCalendarScreen({
-    Key? key,
-    required this.subject,
+  const AttendanceCalendarDialog({
+    super.key,
     required this.attendanceData,
-  }) : super(key: key);
+    required this.subject,
+  });
+
+  /// Group attendance data by date
+  Map<DateTime, List<String>> _groupAttendanceByDate() {
+    final Map<DateTime, List<String>> grouped = {};
+
+    for (var entry in attendanceData) {
+      final date = DateTime.parse(entry['date']!);
+      final status = entry['status']!;
+
+      final day = DateTime(date.year, date.month, date.day); // Remove time
+
+      if (!grouped.containsKey(day)) {
+        grouped[day] = [];
+      }
+
+      grouped[day]!.add(status);
+    }
+
+    return grouped;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Map<DateTime, List> events = {};
+    final groupedEvents = _groupAttendanceByDate();
 
-    for (var entry in attendanceData) {
-      if (entry['subject'] == subject) {
-        DateTime date = DateTime.parse(entry['date']);
-        events[date] = [entry['status']];
-      }
-    }
+    return Dialog(
+      backgroundColor: const Color(0xFF2C2C2C),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "$subject Attendance",
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 400,
+              child: TableCalendar(
+                firstDay: DateTime.utc(2023, 1, 1),
+                lastDay: DateTime.utc(2030, 12, 31),
+                focusedDay: DateTime.now(),
+                calendarStyle: const CalendarStyle(
+                  outsideDaysVisible: false,
+                  markersAlignment: Alignment.bottomCenter,
+                ),
+                eventLoader: (day) {
+                  return groupedEvents[DateTime(day.year, day.month, day.day)] ?? [];
+                },
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, date, events) {
+                    if (events.isEmpty) return const SizedBox();
 
-    return Scaffold(
-      appBar: AppBar(title: Text('$subject Attendance Calendar')),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: TableCalendar(
-          focusedDay: DateTime.now(),
-          firstDay: DateTime(2020),
-          lastDay: DateTime(2100),
-          eventLoader: (day) => events[day] ?? [],
-          calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(
-              color: Colors.blue,
-              shape: BoxShape.circle,
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: events.map((e) {
+                        // Safely cast e to String and use contains
+                        final status = e as String? ?? '';  // Cast to String safely
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: status.contains('A') ? Colors.red : Colors.green,
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+                headerStyle: const HeaderStyle(
+                  titleTextStyle: TextStyle(color: Colors.white),
+                  formatButtonVisible: false,
+                  leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white),
+                  rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white),
+                ),
+                daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(color: Colors.white),
+                  weekendStyle: TextStyle(color: Colors.redAccent),
+                ),
+                calendarFormat: CalendarFormat.month,
+                availableGestures: AvailableGestures.all,
+              ),
             ),
-            selectedDecoration: BoxDecoration(
-              color: Colors.green,
-              shape: BoxShape.circle,
-            ),
-            defaultDecoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            weekendDecoration: BoxDecoration(
-              color: Colors.red[100],
-              shape: BoxShape.circle,
-            ),
-          ),
-          calendarBuilders: CalendarBuilders(
-            defaultBuilder: (context, day, focusedDay) {
-              if (events.containsKey(day)) {
-                final status = events[day]![0];
-                final color = status == 'Absent' ? Colors.red : Colors.green;
-                return Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${day.day}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                );
-              }
-              return null;
-            },
-          ),
+          ],
         ),
       ),
     );

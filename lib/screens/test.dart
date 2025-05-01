@@ -1,8 +1,13 @@
+import 'package:circlify/circlify.dart';
+import 'package:circlify/circlify_item.dart';
 import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_bloc.dart';
 import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_event.dart';
 import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_state.dart';
 import 'package:erp_app/models/final_attendance_model.dart';
 import 'package:erp_app/repository/final_attendance_repo.dart';
+import 'package:erp_app/screens/attendance_list.dart';
+import 'package:erp_app/screens/chart.dart';
+import 'package:erp_app/screens/pdp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -29,9 +34,12 @@ import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_state.dart';
 import 'package:erp_app/screens/dashboard_screen.dart';
 import 'package:erp_app/screens/att_calender.dart';
 import 'package:erp_app/screens/splashwrapper.dart';
+import 'package:lottie/lottie.dart';
 //import '../blocs/attendance_bloc.dart';
 import '../models/attendance_model.dart';
 import 'package:fl_chart/fl_chart.dart';
+
+
 
 class Test extends StatelessWidget {
   const Test({super.key});
@@ -59,21 +67,24 @@ class Test extends StatelessWidget {
             formatter.parse(b['date']!).compareTo(formatter.parse(a['date']!)),
       );
   }
+  
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;  
     return BlocProvider(
       create:
           (_) =>
               AttendanceBloc(AttendanceRepository())
                 ..add(LoadSemestersAndAttendance()),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Dashboard", style: TextStyle(color: Colors.white)),
-          backgroundColor: Color(0xFF2C2C2C),
-          iconTheme: IconThemeData(color: Colors.white),
-          centerTitle: true,
-        ),
+        // appBar: AppBar(
+        //   title: const Text("Dashboard", style: TextStyle(color: Colors.white)),
+        //   backgroundColor: Color(0xFF2C2C2C),
+        //   iconTheme: IconThemeData(color: Colors.white),
+        //   centerTitle: true,
+        // ),
         backgroundColor: Colors.black26,
         drawer: _buildDrawer(context),
         body: BlocBuilder<ProfileBloc, ProfileState>(
@@ -92,18 +103,20 @@ class Test extends StatelessWidget {
                   }
 
                   int total = state.attendance.length;
-                  int present =
-                      state.attendance.where((e) => !e.isAbsent).length;
-                  String percent =
-                      total > 0
-                          ? (present / total * 100).toStringAsFixed(2)
-                          : "0.00";
-                  int allowedMisses =
-                      ((present / 0.75).ceil() - total)
-                          .clamp(0, double.infinity)
-                          .toInt();
+                  int present = state.attendance.where((e) => !e.isAbsent).length;
 
-                  return SingleChildScrollView(
+                  double percentAsDouble = total > 0 ? (present / total * 100) : 0.0;
+                  String percent = percentAsDouble.toStringAsFixed(2);
+
+                  int allowedMisses = ((present / 0.75).ceil() - total)
+                      .clamp(0, double.infinity)
+                      .toInt();
+
+                  int requiredPresents = 0;
+                  if (percentAsDouble < 75.0) {
+                    requiredPresents = ((0.75 * total - present) / 0.25).ceil();
+                  }
+                 return SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.only(
                         bottom: 16,
@@ -111,187 +124,208 @@ class Test extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 20),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                          
+                          Column(
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Hello, ${profile.fullName}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
+                                Stack(
+                                  children: [
+                                    // Lottie Background
+                                    ClipRect(
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height: screenHeight * 0.165,
+                                        child: Lottie.asset(
+                                          'assets/night.json',
+                                          fit: BoxFit.cover,
+                                          alignment: Alignment.center,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        profile.collegeEmail,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14, // slightly reduced
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
+                                    ),
+
+                                    // Foreground content on top of Lottie
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        children: [
+                                          const SizedBox(height: 40),
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              IconButton(
+                                                onPressed: () {
+                                                  Scaffold.of(context).openDrawer();
+                                                },
+                                                icon: const Icon(
+                                                  Icons.menu,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Hello, ${profile.fullName}',
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      profile.collegeEmail,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(width: 20),
+                                              Theme(
+                                                data: Theme.of(context).copyWith(
+                                                  canvasColor: Colors.grey[850],
+                                                ),
+                                                child: SizedBox(
+                                                  width: 140,
+                                                  child: DropdownButtonFormField<int>(
+                                                    value: state.selectedSemesterId,
+                                                    decoration: const InputDecoration(
+                                                      labelText: "Sem",
+                                                      border: OutlineInputBorder(),
+                                                      isDense: true,
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                    ),
+                                                    items: state.semesters
+                                                        .map(
+                                                          (sem) => DropdownMenuItem(
+                                                            value: sem.id,
+                                                            child: Text(
+                                                              sem.name,
+                                                              style: const TextStyle(color: Colors.white),
+                                                            ),
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                                    onChanged: (id) => bloc.add(ChangeSemester(id!)),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 20),
-                                Theme(
-                                  data: Theme.of(
-                                    context,
-                                  ).copyWith(canvasColor: Colors.grey[850]),
-                                  child: SizedBox(
-                                    width: 140, // adjusted to fit in one line
-                                    child: DropdownButtonFormField<int>(
-                                      value: state.selectedSemesterId,
-                                      decoration: const InputDecoration(
-                                        labelText: "Sem",
-                                        border: OutlineInputBorder(),
 
-                                        isDense: true,
-                                        contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical:
-                                              8, // slightly smaller height
-                                        ),
+                                const SizedBox(height: 40),
+
+                                // Bottom section (no Lottie background)
+                                if (!state.isLoading)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    child: Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
-
-                                      items:
-                                          state.semesters
-                                              .map(
-                                                (sem) => DropdownMenuItem(
-                                                  value: sem.id,
-                                                  child: Text(
-                                                    sem.name,
+                                      elevation: 15,
+                                      color: const Color(0xFF2C2C2C).withOpacity(0.8),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    "Overall Attendance",
                                                     style: TextStyle(
+                                                      fontSize: 22,
+                                                      fontWeight: FontWeight.bold,
                                                       color: Colors.white,
                                                     ),
                                                   ),
-                                                ),
-                                              )
-                                              .toList(),
-                                      onChanged:
-                                          (id) => bloc.add(ChangeSemester(id!)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
-                          if (!state.isLoading)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                elevation: 15,
-                                color: Color(0xFF2C2C2C),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // 📊 Text info
-                                      Expanded(
-                                        flex: 2,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              "📊 Overall Attendance",
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    "Total Classes: $total",
+                                                    style:
+                                                        const TextStyle(color: Colors.white70, fontSize: 16),
+                                                  ),
+                                                  Text(
+                                                    "Total Presents: $present",
+                                                    style:
+                                                        const TextStyle(color: Colors.white70, fontSize: 16),
+                                                  ),
+                                                  Text(
+                                                    "Overall Percentage: $percent%",
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      color: double.parse(percent) < 75
+                                                          ? Colors.red
+                                                          : Colors.green,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              "Total Classes: $total",
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                              ),
-                                            ),
-                                            Text(
-                                              "Total Presents: $present",
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                              ),
-                                            ),
-                                            Text(
-                                              "Overall Percentage: $percent%",
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    double.parse(percent) < 75
-                                                        ? Colors.red
-                                                        : Colors.green,
+                                            const SizedBox(width: 16),
+                                            SizedBox(
+                                              width: 120,
+                                              height: 120,
+                                              child: Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  Circlify(
+                                                    segmentWidth: 10,
+                                                    labelStyle: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                    items: [
+                                                      CirclifyItem(
+                                                        id: '2',
+                                                        color: Colors.green,
+                                                        value: (present / total) * 100,
+                                                        label: '',
+                                                      ),
+                                                      CirclifyItem(
+                                                        id: '1',
+                                                        color: Colors.red,
+                                                        value: 100 - ((present / total) * 100),
+                                                        label: '',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Text(
+                                                    "${((present / total) * 100).toStringAsFixed(2)}%",
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.w300,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(width: 16),
-                                      SizedBox(
-                                        width: 120,
-                                        height: 120,
-                                        child: PieChart(
-                                          PieChartData(
-                                            sections: [
-                                              PieChartSectionData(
-                                                value: present.toDouble(),
-                                                color: Colors.green,
-                                                title:
-                                                    '${((present / total) * 100).toStringAsFixed(1)}%',
-                                                radius: 50,
-                                                titleStyle: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              PieChartSectionData(
-                                                value:
-                                                    (total - present)
-                                                        .toDouble(),
-                                                color: Colors.red,
-                                                title:
-                                                    '${(((total - present) / total) * 100).toStringAsFixed(1)}%',
-                                                radius: 50,
-                                                titleStyle: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
-                                            sectionsSpace: 2,
-                                            centerSpaceRadius: 20,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
+                              ],
                             ),
-                          const SizedBox(height: 20),
+
+
+                          const SizedBox(height: 0),
                           const Padding(
                             padding: EdgeInsets.symmetric(
                               horizontal: 16.0,
@@ -316,20 +350,23 @@ class Test extends StatelessWidget {
                               scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
-                                  // Orange Card
+                                  // Orange Bordered Card
                                   SizedBox(
                                     width: 200,
                                     height: 200,
                                     child: Card(
-                                      color: Colors.orange,
+                                      color: Colors.black, // Background color black
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
+                                        side: const BorderSide(
+                                          color: Colors.orange, // Border color
+                                          width: 2,
+                                        ),
                                       ),
                                       child: Padding(
                                         padding: const EdgeInsets.all(16.0),
                                         child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             const Spacer(),
                                             Image.asset(
@@ -342,7 +379,7 @@ class Test extends StatelessWidget {
                                             const Text(
                                               'Organization',
                                               style: TextStyle(
-                                                color: Colors.white,
+                                                color: Colors.orange, // Text color same as border
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
                                               ),
@@ -351,7 +388,7 @@ class Test extends StatelessWidget {
                                             const Text(
                                               'AKGEC, Ghaziabad',
                                               style: TextStyle(
-                                                color: Colors.white70,
+                                                color: Colors.orangeAccent,
                                                 fontWeight: FontWeight.w500,
                                                 fontSize: 14,
                                               ),
@@ -364,20 +401,23 @@ class Test extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 16),
 
-                                  // Blue Card
+                                  // Blue Bordered Card
                                   SizedBox(
                                     width: 200,
                                     height: 200,
                                     child: Card(
-                                      color: Colors.blue,
+                                      color: Colors.black,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
+                                        side: const BorderSide(
+                                          color: Colors.blue,
+                                          width: 2,
+                                        ),
                                       ),
                                       child: Padding(
                                         padding: const EdgeInsets.all(16.0),
                                         child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             const Spacer(),
                                             ClipOval(
@@ -392,7 +432,7 @@ class Test extends StatelessWidget {
                                             const Text(
                                               'Course',
                                               style: TextStyle(
-                                                color: Colors.white,
+                                                color: Colors.blue,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
                                               ),
@@ -401,7 +441,7 @@ class Test extends StatelessWidget {
                                             const Text(
                                               'B.Tech.',
                                               style: TextStyle(
-                                                color: Colors.white70,
+                                                color: Colors.lightBlueAccent,
                                                 fontWeight: FontWeight.w500,
                                                 fontSize: 14,
                                               ),
@@ -414,57 +454,65 @@ class Test extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 16),
 
-                                  // Green Card (New)
+                                  // Green Bordered Card
                                   SizedBox(
-                                    width: 200,
-                                    height: 200,
-                                    child: Card(
-                                      color: Colors.green,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Spacer(),
-                                            Icon(
-                                              Icons.check_circle,
-                                              size: 50,
-                                              color: Colors.white,
-                                            ),
-                                            const SizedBox(height: 10),
-                                            const Text(
-                                              'Above 75% :)',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
+                                      width: 200,
+                                      height: 200,
+                                      child: Card(
+                                        color: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          side: const BorderSide(
+                                            color: Colors.green,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              const Spacer(),
+                                              Icon(
+                                                percentAsDouble >= 75 ? Icons.check_circle : Icons.warning,
+                                                size: 50,
+                                                color: percentAsDouble >= 75 ? Colors.green : Colors.red,
                                               ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              'You can miss\n$allowedMisses class${allowedMisses == 1 ? '' : 'es'}',
-                                              style: const TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
+                                              const SizedBox(height: 10),
+                                              Text(
+                                                percentAsDouble >= 75 ? 'Above 75% :)' : 'Below 75%',
+                                                style: TextStyle(
+                                                  color: percentAsDouble >= 75 ? Colors.green : Colors.red,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
                                               ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            const Spacer(),
-                                          ],
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                percentAsDouble >= 75
+                                                    ? 'You can miss\n$allowedMisses class${allowedMisses == 1 ? '' : 'es'}'
+                                                    : 'Attend $requiredPresents more class${requiredPresents == 1 ? '' : 'es'} to reach 75%',
+                                                style: const TextStyle(
+                                                  color: Colors.greenAccent,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              const Spacer(),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
+                                    )
+
                                 ],
-                              ),
+                              )
+
+
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          //const SizedBox(height: 20),
                           const Padding(
                             padding: EdgeInsets.symmetric(
                               horizontal: 16.0,
@@ -510,113 +558,75 @@ class Test extends StatelessWidget {
                                         subject,
                                       );
 
-                                      return Card(
-                                        margin: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        elevation: 15,
-                                        color: Color(0xFF2C2C2C),
-                                        child: ExpansionTile(
+                                      return SubjectAttendanceTile(
+                                            subject: subject,
+                                            present: present,
+                                            total: total,
+                                            percent: percent,
+                                            groupedByDate: groupedByDate,
+                                          );
+                                        }).toList(),/* Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                gradient: const LinearGradient(
+                                  colors: [Color.fromARGB(255, 172, 127, 209), Color.fromARGB(255, 192, 178, 196)], // You can customize colors
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Container(
+                                margin: const EdgeInsets.all(2), // Thickness of gradient border
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1E1E), // Slightly darker than before for better contrast
+                                  borderRadius: BorderRadius.circular(13),
+                                ),
+                                child: Theme(
+                                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                  child: ExpansionTile(
+                                    title: Text(
+                                      subject,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      "Present: $present / $total   ($percent%)",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: double.parse(percent) < 75 ? Colors.red : Colors.green,
+                                      ),
+                                    ),
+                                    children: [
+                                      if (groupedByDate.isEmpty)
+                                        const ListTile(
                                           title: Text(
-                                            subject,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
+                                            "No attendance data.",
+                                            style: TextStyle(color: Colors.white),
                                           ),
-                                          subtitle: Text(
-                                            "Present: $present / $total   ($percent%)",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color:
-                                                  double.parse(percent) < 75
-                                                      ? Colors.red
-                                                      : Colors.green,
+                                        )
+                                      else
+                                        ...groupedByDate.map((item) {
+                                          final status = item['status']!;
+                                          return ListTile(
+                                            leading: Icon(
+                                              status.contains('A') ? Icons.cancel : Icons.check_circle,
+                                              color: status.contains('A') ? Colors.red : Colors.green,
                                             ),
-                                          ),
-                                          children: [
-                                            ListTile(
-                                              leading: Icon(
-                                                Icons.calendar_today,
-                                                color: Colors.white,
-                                              ),
-                                              title: Text(
-                                                'View Attendance Calendar',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder:
-                                                        (
-                                                          context,
-                                                        ) => AttendanceCalendarScreen(
-                                                          subject: subject,
-                                                          attendanceData:
-                                                              state.attendance
-                                                                  .map(
-                                                                    (entry) => {
-                                                                      'date':
-                                                                          entry
-                                                                              .absentDate,
-                                                                      'status':
-                                                                          entry.isAbsent
-                                                                              ? 'Absent'
-                                                                              : 'Present',
-                                                                      'subject':
-                                                                          entry
-                                                                              .subjectName,
-                                                                    },
-                                                                  )
-                                                                  .toList(),
-                                                        ),
-                                                  ),
-                                                );
-                                              },
+                                            title: Text(
+                                              "${item['date']} - $status",
+                                              style: const TextStyle(color: Colors.white),
                                             ),
-                                            if (groupedByDate.isEmpty)
-                                              const ListTile(
-                                                title: Text(
-                                                  "No attendance data.",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              )
-                                            else
-                                              ...groupedByDate.map((item) {
-                                                final status = item['status']!;
-                                                return ListTile(
-                                                  leading: Icon(
-                                                    status.contains('A')
-                                                        ? Icons.cancel
-                                                        : Icons.check_circle,
-                                                    color:
-                                                        status.contains('A')
-                                                            ? Colors.red
-                                                            : Colors.green,
-                                                  ),
-                                                  title: Text(
-                                                    "${item['date']} - $status",
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                );
-                                              }).toList(),
-                                          ],
-                                        ),
-                                      );
-                                    }).toList(),
+                                          );
+                                        }).toList(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );*/
+
+                                  //  }).toList(),
                               ),
                         ],
                       ),
@@ -700,12 +710,18 @@ Drawer _buildDrawer(BuildContext context) {
               MaterialPageRoute(builder: (_) => const EIdentityScreen()),
             );
           }),
-          _drawerItem(context, 'Calendar', Icons.calendar_month, () {
+          _drawerItem(context, 'PDP', Icons.badge, () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const CalendarScreen()),
+              MaterialPageRoute(builder: (_) => const Pdp()),
             );
           }),
+          // _drawerItem(context, 'Calendar', Icons.calendar_month, () {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (_) => const CalendarScreen()),
+          //   );
+          // }),
           _drawerItem(context, 'Sign Out', Icons.logout, () async {
             final storage = FlutterSecureStorage();
 
