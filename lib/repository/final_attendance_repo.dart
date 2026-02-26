@@ -7,6 +7,7 @@ import '../models/attendance_model.dart';
 //import '../models/semester_model.dart';
 
 class AttendanceRepository {
+
   final secureStorage = const FlutterSecureStorage();
 
   Future<Map<String, String>> _getHeaders() async {
@@ -14,6 +15,10 @@ class AttendanceRepository {
     final sessionId = await secureStorage.read(key: 'sessionId');
     final userId = await secureStorage.read(key: 'xUserId');
     final xToken = await secureStorage.read(key: 'xToken');
+
+    if ([accessToken, sessionId, userId, xToken].contains(null)) {
+      throw Exception('Auth data missing from storage');
+    }
 
     return {
       'Authorization': 'Bearer $accessToken',
@@ -23,6 +28,7 @@ class AttendanceRepository {
       'x-userid': userId!,
       'x_token': xToken!,
       'x-rx': '1',
+      'Accept': 'application/json',
     };
   }
 
@@ -56,8 +62,12 @@ class AttendanceRepository {
 
   Future<List<AttendanceEntry>> fetchAttendance(int userId) async {
     final headers = await _getHeaders();
+
+    print('ATTENDANCE REQUEST URL: https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0');
+    print('ATTENDANCE REQUEST HEADERS: $headers');
+
     final response = await http.get(
-      Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0&'),
+      Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0'),
       headers: headers,
     );
 

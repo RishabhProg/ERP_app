@@ -254,8 +254,28 @@ class _HomeScreenState extends State<HomeScreen> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: BlocConsumer<AuthBloc, AuthState>(
-                  listener: (context, state) {
+                  listener: (context, state) async {
                     if (state is AuthSuccess) {
+
+                      const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+
+                      await secureStorage.write(
+                        key: 'accessToken',
+                        value: state.accessToken,
+                      );
+                      await secureStorage.write(
+                        key: 'sessionId',
+                        value: state.sessionId,
+                      );
+                      await secureStorage.write(
+                        key: 'xUserId',
+                        value: state.xUserId,
+                      );
+                      await secureStorage.write(
+                        key: 'xToken',
+                        value: state.xToken,
+                      );
+
                       final loginResponse = LoginResponse(
                         accessToken: state.accessToken,
                         sessionId: state.sessionId,

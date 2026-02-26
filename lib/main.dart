@@ -33,7 +33,6 @@ class MyApp extends StatelessWidget {
           create: (context) => AuthBloc(authRepository)..add(CheckAuthStatus()),
         ),
        
-        BlocProvider(create: (_) => AttendanceBloc(AttendanceRepository())),
         // Add more BLoCs here if needed
       ],
       child: MaterialApp(

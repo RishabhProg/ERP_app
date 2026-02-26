@@ -12,6 +12,8 @@ class AuthRepository {
       body: 'grant_type=password&username=$username&password=$password',
     );
 
+    print(response.headers);
+
     if (response.statusCode == 200) {
 
       print('login ----------------');
