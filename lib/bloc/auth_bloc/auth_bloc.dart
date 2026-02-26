@@ -28,11 +28,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final xUserId = response['X-UserId'];
       final xToken = response['X_Token'];
 
-      if (accessToken == null ||
-          sessionId == null ||
-          xUserId == null ||
-          xToken == null ||
-          accessToken is! String ||
+
+      if (accessToken is! String ||
           sessionId is! String ||
           xUserId is! String ||
           xToken is! String) {
@@ -40,20 +37,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return;
       }
 
-      await secureStorage.write(key: 'accessToken', value: accessToken);
-      await secureStorage.write(key: 'sessionId', value: sessionId);
-      await secureStorage.write(key: 'xUserId', value: xUserId);
-      await secureStorage.write(key: 'xToken', value: xToken);
-
-      emit(
-        AuthSuccess(
+      final authSuccess = AuthSuccess(
           accessToken: accessToken,
           sessionId: sessionId,
           xUserId: xUserId,
           xToken: xToken,
-          userId: xUserId,
-        ),
       );
+
+      await _persistAuthSuccess(authSuccess);
+      emit(authSuccess);
     } catch (e) {
       emit(AuthFailure("Login failed: ${e.toString()}"));
     }
@@ -80,10 +72,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           sessionId: sessionId,
           xUserId: xUserId,
           xToken: xToken,
-          userId: xUserId,
         ));
       } else {
-        emit(AuthInitial());
+        emit(const AuthInitial());
       }
     } catch (e) {
       emit(AuthFailure("Failed to check auth status: ${e.toString()}"));
@@ -95,6 +86,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     await secureStorage.deleteAll();
-    emit(AuthInitial());
+    emit(const AuthInitial());
+  }
+
+  Future<void> _persistAuthSuccess(AuthSuccess s) async {
+    await secureStorage.write(key: 'accessToken', value: s.accessToken);
+    await secureStorage.write(key: 'sessionId', value: s.sessionId);
+    await secureStorage.write(key: 'xUserId', value: s.xUserId);
+    await secureStorage.write(key: 'xToken', value: s.xToken);
   }
 }

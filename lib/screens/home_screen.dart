@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         xUserId: state.xUserId,
                         xToken: state.xToken,
                       );
-
+                            print('login was done');
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Login Successful")),
                       );

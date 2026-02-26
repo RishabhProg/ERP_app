@@ -16,7 +16,7 @@ class LoginResponse {
     return LoginResponse(
       accessToken: json['access_token'],
       sessionId: json['SessionId'],
-      xUserId: json['X_UserId'],
+      xUserId: json['X-UserId'],
       xToken: json['X_Token'],
     );
   }
@@ -24,9 +24,9 @@ class LoginResponse {
   Map<String, dynamic> toJson() {
     return {
       'access_token': accessToken,
-      'SessionId': sessionId,
-      'X_UserId': xUserId,
-      'X_Token': xToken,
+      'sessionid': sessionId,
+      'x-userid': xUserId,
+      'x_token': xToken,
     };
   }
 }

@@ -635,7 +635,17 @@ class Test extends StatelessWidget {
                 },
               );
             }
-            return const SizedBox.shrink();
+            else if(state is ProfileError){
+              return Center(
+                child: Text(
+                  "Failed to load profile",
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           },
         ),
       ),

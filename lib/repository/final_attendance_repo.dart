@@ -17,18 +17,18 @@ class AttendanceRepository {
 
     return {
       'Authorization': 'Bearer $accessToken',
-      'X-Wb': '1',
-      'Sessionid': sessionId!,
-      'X-Contextid': '194',
-      'X-Userid': userId!,
-      'X_token': xToken!,
-      'X-Rx': '1',
+      'x-wb': '1',
+      'sessionid': sessionId!,
+      'x-contextid': '194',
+      'x-userid': userId!,
+      'x_token': xToken!,
+      'x-rx': '1',
     };
   }
 
   Future<List<Semester>> fetchSemesters() async {
     final headers = await _getHeaders();
-    final userId = headers['X-Userid'];
+    final userId = headers['x-userid'];
     final response = await http.get(
       Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance?userFromClient=0&userId=$userId'),
       headers: headers,
@@ -57,7 +57,7 @@ class AttendanceRepository {
   Future<List<AttendanceEntry>> fetchAttendance(int userId) async {
     final headers = await _getHeaders();
     final response = await http.get(
-      Uri.parse('https://akgecerp.edumarshal.com/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0'),
+      Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0&'),
       headers: headers,
     );
 
