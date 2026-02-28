@@ -17,12 +17,14 @@ class AttendanceRepository {
 
     return {
       'Authorization': 'Bearer $accessToken',
+      'Accept': 'application/json',
       'x-wb': '1',
       'sessionid': sessionId!,
       'x-contextid': '194',
       'x-userid': userId!,
       'x_token': xToken!,
       'x-rx': '1',
+      'User-Agent': 'ERP/1.0'
     };
   }
 
@@ -57,7 +59,7 @@ class AttendanceRepository {
   Future<List<AttendanceEntry>> fetchAttendance(int userId) async {
     final headers = await _getHeaders();
     final response = await http.get(
-      Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0&'),
+      Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0'),
       headers: headers,
     );
 

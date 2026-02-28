@@ -30,7 +30,7 @@ class _PdpState extends State<Pdp> {
       throw Exception("Missing authentication headers.");
     }
 
-    final url = Uri.parse('https://erp.akgec.ac.in/api/User/GetByUserId/$userId?y=0');
+    final url = Uri.parse('https://erp.akgec.ac.in/api/User?Id=$userId&val=0&val1=0&val2=0&val3=0');
     final headers = {
       'Authorization': 'Bearer $accessToken',
       'x_token': xToken,
@@ -40,6 +40,7 @@ class _PdpState extends State<Pdp> {
       'x-wb': '1',
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/plain, */*',
+      'User-Agent': 'ERP/1.0'
     };
 
     final response = await http.get(url, headers: headers);
@@ -77,6 +78,7 @@ class _PdpState extends State<Pdp> {
       'x-wb': '1',
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/plain, */*',
+      'User-Agent': 'ERP/1.0'
     };
 
     final response = await http.get(url, headers: headers);
@@ -123,97 +125,89 @@ class _PdpState extends State<Pdp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.black,
-        cardColor: Colors.grey[900],
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text("PDP Attendance", style: TextStyle(color: Colors.white, fontSize: 22)),
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text("PDP Attendance", style: TextStyle(color: Colors.white, fontSize: 22)),
-          backgroundColor: Colors.black,
-        ),
-        body: FutureBuilder<Map<String, List<TransportAttendance>>>(
-          future: groupedAttendance,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            }
 
-            final grouped = snapshot.data!;
-            if (grouped.isEmpty) {
-              return const Center(child: Text("No attendance data"));
-            }
+      body: FutureBuilder<Map<String, List<TransportAttendance>>>(
+        future: groupedAttendance,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
 
-            final totalPresent = _countTotalPresent(grouped);
-            final totalClasses = _countTotalClasses(grouped);
-            final percentage = _calculatePercentage(totalPresent, totalClasses);
+          final grouped = snapshot.data!;
+          if (grouped.isEmpty) {
+            return const Center(child: Text("No attendance data"));
+          }
 
-            final sortedEntries = grouped.entries.toList()
-              ..sort((a, b) => b.key.compareTo(a.key)); // sort by date descending
+          final totalPresent = _countTotalPresent(grouped);
+          final totalClasses = _countTotalClasses(grouped);
+          final percentage = _calculatePercentage(totalPresent, totalClasses);
 
-            return ListView(
-              padding: const EdgeInsets.all(8),
-              children: [
-                Card(
-                  color: Colors.grey[850],
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Total Classes: $totalClasses", style: TextStyle(fontSize: 16)),
-                        const SizedBox(height: 4),
-                        Text("Total Present: $totalPresent", style: TextStyle(fontSize: 16)),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Overall Attendance: ${percentage.toStringAsFixed(2)}%",
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: percentage > 75 ? Colors.green : Colors.red,
-                          ),
+          final sortedEntries = grouped.entries.toList()
+            ..sort((a, b) => b.key.compareTo(a.key)); // sort by date descending
+
+          return ListView(
+            padding: const EdgeInsets.all(8),
+            children: [
+              Card(
+                color: Colors.grey[850],
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Total Classes: $totalClasses", style: TextStyle(fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Text("Total Present: $totalPresent", style: TextStyle(fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Overall Attendance: ${percentage.toStringAsFixed(2)}%",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: percentage > 75 ? Colors.green : Colors.red,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                ...sortedEntries.map((entry) {
-                  final status = _getStatus(entry.value);
-                  return Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      title: Text("Date: ${entry.key}", style: Theme.of(context).textTheme.titleLarge),
-                      subtitle: Text(
-                        "Status: $status",
-                        style: TextStyle(
-                          color: _statusColor(status),
-                          fontSize: 16,
-                        ),
-                      ),
-                      leading: Icon(
-                        status.contains('A') ? Icons.close : Icons.check,
+              ),
+              ...sortedEntries.map((entry) {
+                final status = _getStatus(entry.value);
+                return Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    title: Text("Date: ${entry.key}", style: Theme.of(context).textTheme.titleLarge),
+                    subtitle: Text(
+                      "Status: $status",
+                      style: TextStyle(
                         color: _statusColor(status),
+                        fontSize: 16,
                       ),
                     ),
-                  );
-                }),
-              ],
-            );
-          },
-        ),
+                    leading: Icon(
+                      status.contains('A') ? Icons.close : Icons.check,
+                      color: _statusColor(status),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          );
+        },
       ),
     );
   }
