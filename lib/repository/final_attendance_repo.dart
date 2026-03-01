@@ -31,7 +31,6 @@ class AttendanceRepository {
     };
   }
 
-  // ✅ FIXED: safe parsing + status check
   Future<List<Semester>> fetchSemesters() async {
     final headers = await _getHeaders();
     final userId = headers['x-userid'];
