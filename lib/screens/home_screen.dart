@@ -187,6 +187,8 @@
 //   }
 // }
 
+import 'dart:ui';
+
 import 'package:erp_app/bloc/auth_bloc/auth_bloc.dart';
 import 'package:erp_app/bloc/auth_bloc/auth_event.dart';
 import 'package:erp_app/bloc/auth_bloc/auth_state.dart';
@@ -236,21 +238,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Lottie background
-            Positioned.fill(
-              child: Lottie.asset(
-                'assets/loginback.json', // Your Lottie file
-                fit: BoxFit.cover,
-                repeat: true,
-              ),
-            ),
+      backgroundColor: const Color(0xFFF0F4F8),
+      body: Stack(
+        children: [
 
+        Positioned.fill(
+          child: Opacity(
+           opacity: 0.3,
+            child: Lottie.asset(
+             'assets/Gradient Dots Background.json',
+              fit: BoxFit.cover,
+              repeat: true,
+            ),
+           ),
+        ),
+
+       SafeArea(
             // Main content
-            Center(
+         child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: BlocConsumer<AuthBloc, AuthState>(
@@ -262,11 +267,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         xUserId: state.xUserId,
                         xToken: state.xToken,
                       );
-                            print('login was done');
+                      print('login was done');
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Login Successful")),
                       );
-
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -288,118 +292,178 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context, state) {
                     return Column(
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 40.0, bottom: 20),
-                          child: Text(
-                            "ERP Login",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        const SizedBox(height: 60),
+
+                        // Title
+                        const Text(
+                          "Welcome Back",
+                          style: TextStyle(
+                            color: Color(0xFF1A1A2E),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5), // Transparent white
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white30,
-                              width: 1,
-                            ),
+                        const SizedBox(height: 6),
+                        Text(
+                          "Sign in to continue",
+                          style: TextStyle(
+                            color: const Color(0xFF1A1A2E).withOpacity(0.45),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
                           ),
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                controller: _usernameController,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.person, color: Colors.white),
-                                  labelText: 'Username',
-                                  labelStyle: const TextStyle(color: Colors.white70),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(color: Colors.white24),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(color: Colors.white),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        // Glass card
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.white.withOpacity(0.5),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.7),
+                                  width: 1.5,
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: true,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  prefixIcon: const Icon(Icons.lock, color: Colors.white),
-                                  labelText: 'Password',
-                                  labelStyle: const TextStyle(color: Colors.white70),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(color: Colors.white24),
-                                    borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(color: Colors.white),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
+                                ],
                               ),
-                              const SizedBox(height: 20),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: state is AuthLoading ? null : _handleLogin,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green[700],
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                              child: Column(
+                                children: [
+                                  // Username field
+                                  TextFormField(
+                                    controller: _usernameController,
+                                    style: const TextStyle(color: Color(0xFF1A1A2E)),
+                                    decoration: InputDecoration(
+                                      prefixIcon: Icon(
+                                        Icons.person_outline,
+                                        color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                                      ),
+                                      hintText: 'Username',
+                                      hintStyle: TextStyle(
+                                        color: const Color(0xFF1A1A2E).withOpacity(0.35),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.white.withOpacity(0.6),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.black.withOpacity(0.1),
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.black.withOpacity(0.2),
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
-                                  child: state is AuthLoading
-                                      ? const CircularProgressIndicator(
-                                          color: Colors.white,
-                                        )
-                                      : const Text(
-                                          'SIGN IN',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                  const SizedBox(height: 14),
+
+                                  // Password field
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: true,
+                                    style: const TextStyle(color: Color(0xFF1A1A2E)),
+                                    decoration: InputDecoration(
+                                      prefixIcon: Icon(
+                                        Icons.lock_outline,
+                                        color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                                      ),
+                                      hintText: 'Password',
+                                      hintStyle: TextStyle(
+                                        color: const Color(0xFF1A1A2E).withOpacity(0.35),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.white.withOpacity(0.6),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.black.withOpacity(0.1),
                                         ),
-                                ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.black.withOpacity(0.2),
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+
+                                  // Sign in button
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: state is AuthLoading ? null : _handleLogin,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF2E9E5B),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(vertical: 16),
+                                        elevation: 0,
+                                        shadowColor: const Color(0xFF2E9E5B).withOpacity(0.3),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: state is AuthLoading
+                                          ? const CircularProgressIndicator(color: Colors.white)
+                                          : const Text(
+                                        'Sign In',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ForgotPasswordScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(color: Colors.green, fontSize: 16),
-                          ),
-                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Forgot password
+                        // TextButton(
+                        //   onPressed: () {
+                        //     Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //         builder: (_) => const ForgotPasswordScreen(),
+                        //       ),
+                        //     );
+                        //   },
+                        //   child: Text(
+                        //     'Forgot Password?',
+                        //     style: TextStyle(
+                        //       color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                        //       fontSize: 14,
+                        //       fontWeight: FontWeight.w500,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     );
                   },
                 ),
               ),
             ),
-          ],
-        ),
       ),
+      ]
+    )
     );
   }
 }

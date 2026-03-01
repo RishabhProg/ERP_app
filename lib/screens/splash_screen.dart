@@ -34,53 +34,92 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(20, 20, 20, 0),
+      backgroundColor: Colors.white,
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          SizedBox.expand(
-            child: Image.asset('assets/background.jpeg', fit: BoxFit.cover),
+          // Decorative circles
+          Positioned(
+            top: -60,
+            right: -60,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF2E9E5B).withOpacity(0.08),
+              ),
+            ),
           ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 80.0),
-              child: const Text(
+          Positioned(
+            top: 80,
+            right: 20,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF2E9E5B).withOpacity(0.06),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -80,
+            left: -80,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFE53935).withOpacity(0.06),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 120,
+            left: 30,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF2E9E5B).withOpacity(0.07),
+              ),
+            ),
+          ),
+
+
+
+          // Main content
+          Column(
+            children: [
+              const Spacer(flex: 4), // more space at top
+              const Text(
                 'Welcome to\nEdumarshal !',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 48,
+                  fontSize: 40,
                   height: 1.5,
-                  color: Colors.white,
+                  color: Color(0xFF1A1A2E),
                   fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 100.0),
-              child: Image.asset(
-                'assets/centerimage2.jpeg',
-                width: 400,
-                height: 400,
+              const Spacer(flex: 2), // space between text and image
+              Image.asset(
+                'assets/app_loader1.png',
+                width: 300,
+                height: 300,
               ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 100.0,
-                right: 150.0,
-                bottom: 100.0,
-              ),
-              child: Lottie.asset(
-                'assets/animation.json',
-                width: 150,
+              const Spacer(flex: 1), // space between image and lottie
+              Lottie.asset(
+                'assets/line loader.json',
+                width: 300,
                 height: 150,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
               ),
-            ),
+              const Spacer(flex: 2), // space at bottom
+            ],
           ),
         ],
       ),

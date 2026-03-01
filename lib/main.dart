@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
         // Add more BLoCs here if needed
       ],
       child: MaterialApp(
+       // showPerformanceOverlay: true,
         debugShowCheckedModeBanner: false,
         home: const SplashScreen(),
       ),

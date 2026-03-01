@@ -133,12 +133,14 @@ class Test extends StatelessWidget {
                            opacity: 0.3,
                            child: Lottie.asset(
                              'assets/night.json',
+                             frameRate: FrameRate(30),
                              fit: BoxFit.cover,
                              repeat: true,
                            ),
                          ),
                        ),
                       SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
                         child: Padding(
                           padding: const EdgeInsets.only(
                             bottom: 16,
@@ -340,13 +342,13 @@ class Test extends StatelessWidget {
                                                           CirclifyItem(
                                                             id: '2',
                                                             color: const Color(0xFF2E7D32),
-                                                            value: (present / total) * 100,
+                                                            value: double.parse(percent),
                                                             label: '',
                                                           ),
                                                           CirclifyItem(
                                                             id: '1',
                                                             color: const Color(0xFFE53935),
-                                                            value: 100 - ((present / total) * 100),
+                                                            value: 100 - double.parse(percent),
                                                             label: '',
                                                           ),
                                                         ],
@@ -355,7 +357,7 @@ class Test extends StatelessWidget {
                                                             text: TextSpan(
                                                               children: [
                                                                 TextSpan(
-                                                                  text: "${((present / total) * 100).toStringAsFixed(0)}",
+                                                                  text: percent.split('.')[0],
                                                                   style: const TextStyle(
                                                                     fontSize: 25,
                                                                     fontWeight: FontWeight.w300,
@@ -363,7 +365,7 @@ class Test extends StatelessWidget {
                                                                   ),
                                                                 ),
                                                                 TextSpan(
-                                                                  text: ".${((present / total) * 100).toStringAsFixed(2).split('.')[1]}%",
+                                                                  text: ".${percent.split('.')[1]}%",
                                                                   style: const TextStyle(
                                                                     fontSize: 15,
                                                                     fontWeight: FontWeight.w300,
@@ -598,6 +600,7 @@ class Test extends StatelessWidget {
                                   : grouped.isEmpty
                                   ? const Center(child: Text("No subjects found."))
                                   : ListView(
+                                    cacheExtent: 500,
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     children:
@@ -726,81 +729,78 @@ Drawer _buildDrawer(BuildContext context) {
         topRight: Radius.circular(24),
         bottomRight: Radius.circular(24),
       ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          color: Colors.white.withOpacity(0.15),
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  border: Border(
-                    bottom: BorderSide(color: Colors.white.withOpacity(0.2)),
-                  ),
+      child: Container(
+        color: Colors.white.withOpacity(0.9),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                border: Border(
+                  bottom: BorderSide(color: Colors.black.withOpacity(0.08)),
                 ),
-                child: const DrawerHeader(
-                  decoration: BoxDecoration(color: Colors.transparent),
-                  child: Center(
-                    child: Text(
-                      'Menu',
-                      style: TextStyle(
-                        color: Color(0xFF1A1A2E),
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                      ),
+              ),
+              child: const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.transparent),
+                child: Center(
+                  child: Text(
+                    'Menu',
+                    style: TextStyle(
+                      color: Color(0xFF1A1A2E),
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
+            ),
 
-              _drawerItem(context, 'Profile', Icons.person, () {
-                final authState = BlocProvider.of<AuthBloc>(context).state;
-                if (authState is AuthSuccess) {
-                  final loginResponse = LoginResponse(
-                    accessToken: authState.accessToken,
-                    sessionId: authState.sessionId,
-                    xUserId: authState.xUserId,
-                    xToken: authState.xToken,
-                  );
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider(
-                        create: (_) => ProfileBloc(
-                          profileRepository: ProfileRepository(),
-                          loginResponse: loginResponse,
-                        )..add(FetchProfile()),
-                        child: const ProfileScreen(),
-                      ),
-                    ),
-                  );
-                }
-              }),
-              _drawerItem(context, 'Assignment', Icons.assignment, () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentScreen()));
-              }),
-              _drawerItem(context, 'E-Identity', Icons.badge, () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const EIdentityScreen()));
-              }),
-              _drawerItem(context, 'PDP', Icons.badge, () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const Pdp()));
-              }),
-              _drawerItem(context, 'Sign Out', Icons.logout, () async {
-                final storage = FlutterSecureStorage();
-                await storage.delete(key: 'accessToken');
-                await storage.delete(key: 'sessionId');
-                await storage.delete(key: 'xUserId');
-                await storage.delete(key: 'xToken');
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HomeScreen()),
-                      (Route<dynamic> route) => false,
+            _drawerItem(context, 'Profile', Icons.person, () {
+              final authState = BlocProvider.of<AuthBloc>(context).state;
+              if (authState is AuthSuccess) {
+                final loginResponse = LoginResponse(
+                  accessToken: authState.accessToken,
+                  sessionId: authState.sessionId,
+                  xUserId: authState.xUserId,
+                  xToken: authState.xToken,
                 );
-              }),
-            ],
-          ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (_) => ProfileBloc(
+                        profileRepository: ProfileRepository(),
+                        loginResponse: loginResponse,
+                      )..add(FetchProfile()),
+                      child: const ProfileScreen(),
+                    ),
+                  ),
+                );
+              }
+            }),
+            _drawerItem(context, 'Assignment', Icons.assignment, () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentScreen()));
+            }),
+            _drawerItem(context, 'E-Identity', Icons.badge, () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const EIdentityScreen()));
+            }),
+            _drawerItem(context, 'PDP', Icons.badge, () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const Pdp()));
+            }),
+            _drawerItem(context, 'Sign Out', Icons.logout, () async {
+              final storage = FlutterSecureStorage();
+              await storage.delete(key: 'accessToken');
+              await storage.delete(key: 'sessionId');
+              await storage.delete(key: 'xUserId');
+              await storage.delete(key: 'xToken');
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    (Route<dynamic> route) => false,
+              );
+            }),
+          ],
         ),
       ),
     ),
