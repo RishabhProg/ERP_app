@@ -27,12 +27,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final sessionId = response['SessionId'];
       final xUserId = response['X-UserId'];
       final xToken = response['X_Token'];
+      final expiresIn = response['expires_in'];
 
 
       if (accessToken is! String ||
           sessionId is! String ||
           xUserId is! String ||
-          xToken is! String) {
+          xToken is! String ||
+          expiresIn is! int) {
         emit(const AuthFailure("Missing or invalid login response data."));
         return;
       }
@@ -42,12 +44,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           sessionId: sessionId,
           xUserId: xUserId,
           xToken: xToken,
+          expiresIn: expiresIn
       );
 
       await _persistAuthSuccess(authSuccess);
       emit(authSuccess);
     } catch (e) {
-      emit(AuthFailure("Login failed: ${e.toString()}"));
+      emit(AuthFailure(e.toString()));
     }
   }
 
@@ -62,22 +65,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final sessionId = await secureStorage.read(key: 'sessionId');
       final xUserId = await secureStorage.read(key: 'xUserId');
       final xToken = await secureStorage.read(key: 'xToken');
+      final expiresIn = await secureStorage.read(key: 'tokenExpiry');
 
       if (accessToken != null &&
           sessionId != null &&
           xUserId != null &&
-          xToken != null) {
+          xToken != null &&
+          expiresIn != null) {
         emit(AuthSuccess(
           accessToken: accessToken,
           sessionId: sessionId,
           xUserId: xUserId,
           xToken: xToken,
+          expiresIn: 172799,
         ));
       } else {
         emit(const AuthInitial());
       }
     } catch (e) {
-      emit(AuthFailure("Failed to check auth status: ${e.toString()}"));
+      emit(AuthFailure(e.toString()));
     }
   }
 
@@ -94,5 +100,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await secureStorage.write(key: 'sessionId', value: s.sessionId);
     await secureStorage.write(key: 'xUserId', value: s.xUserId);
     await secureStorage.write(key: 'xToken', value: s.xToken);
+    final expiryMs = DateTime.now()
+        .add(Duration(seconds: s.expiresIn))
+        .millisecondsSinceEpoch
+        .toString();
+    await secureStorage.write(key: 'tokenExpiry', value: expiryMs);
   }
 }

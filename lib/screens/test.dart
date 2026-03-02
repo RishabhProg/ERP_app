@@ -703,11 +703,26 @@ class Test extends StatelessWidget {
                 },
               );
             }
-            else if(state is ProfileError){
+
+            else if (state is ProfileError) {
               return Center(
-                child: Text(
-                  "Failed to load profile",
-                  style: TextStyle(color: Colors.white),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Couldn't connect to server",
+                      style: TextStyle(color: Color(0xFF1A1A2E), fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => context.read<ProfileBloc>().add(FetchProfile()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E9E5B),
+                      ),
+                      child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
                 ),
               );
             }
@@ -764,6 +779,7 @@ Drawer _buildDrawer(BuildContext context) {
                   sessionId: authState.sessionId,
                   xUserId: authState.xUserId,
                   xToken: authState.xToken,
+                  expiresIn: authState.expiresIn
                 );
                 Navigator.push(
                   context,

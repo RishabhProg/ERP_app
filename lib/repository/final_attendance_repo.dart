@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:erp_app/models/final_attendance_model.dart';
 import 'package:erp_app/models/sem_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -29,63 +31,93 @@ class AttendanceRepository {
   }
 
   Future<List<Semester>> fetchSemesters() async {
-    final headers = await _getHeaders();
-    final userId = headers['x-userid'];
-    final response = await http.get(
-      Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance?userFromClient=0&userId=$userId'),
-      headers: headers,
-    );
+    try {
+      final headers = await _getHeaders();
+      final userId = headers['x-userid'];
 
-    final List<dynamic> data = json.decode(response.body);
-    final Set<int> seen = {};
-    final List<Semester> semesters = [];
+      final response = await http
+          .get(
+        Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance?userFromClient=0&userId=$userId'),
+        headers: headers,
+      )
+          .timeout(const Duration(seconds: 10));
 
-    for (var item in data) {
-      final int semester = item['semester'];
-      if (!seen.contains(semester)) {
-        seen.add(semester);
-        semesters.add(Semester(
-          id: semester,
-          name: 'Semester $semester',
-          userId: item['userId'],
-        ));
+      if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again');
+      } else if (response.statusCode != 200) {
+        throw Exception('Server error: ${response.statusCode}');
       }
-    }
 
-    semesters.sort((a, b) => b.id.compareTo(a.id));
-    return semesters;
+      final List<dynamic> data = json.decode(response.body);
+      final Set<int> seen = {};
+      final List<Semester> semesters = [];
+
+      for (var item in data) {
+        final int semester = item['semester'];
+        if (!seen.contains(semester)) {
+          seen.add(semester);
+          semesters.add(Semester(
+            id: semester,
+            name: 'Semester $semester',
+            userId: item['userId'],
+          ));
+        }
+      }
+
+      semesters.sort((a, b) => b.id.compareTo(a.id));
+      return semesters;
+    } on SocketException {
+      throw Exception('No internet connection');
+    } on TimeoutException {
+      throw Exception('Request timed out. Please try again');
+    }
   }
 
   Future<List<AttendanceEntry>> fetchAttendance(int userId) async {
-    final headers = await _getHeaders();
-    final response = await http.get(
-      Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0'),
-      headers: headers,
-    );
+    try {
+      final headers = await _getHeaders();
 
-    final data = json.decode(response.body);
-    final List<AttendanceEntry> combined = [];
+      final response = await http
+          .get(
+        Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0'),
+        headers: headers,
+      )
+          .timeout(const Duration(seconds: 10));
 
-    final List<Map<String, dynamic>> regular =
-        List<Map<String, dynamic>>.from(data['attendanceData'] ?? []);
-    final List<Map<String, dynamic>> extra =
-        List<Map<String, dynamic>>.from(data['extraLectures'] ?? []);
-
-    final subjectMap = {
-      for (var e in regular) e['subjectId']: e['subjectName']
-    };
-
-    for (var e in extra) {
-      e['subjectName'] ??= subjectMap[e['subjectId']];
-    }
-
-    final combinedRaw = [...regular, ...extra];
-    for (var entry in combinedRaw) {
-      if (entry['subjectName'] != null) {
-        combined.add(AttendanceEntry.fromJson(entry));
+      if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again');
+      } else if (response.statusCode != 200) {
+        throw Exception('Server error: ${response.statusCode}');
       }
-    }
 
-    return combined;
+      final data = json.decode(response.body);
+      final List<AttendanceEntry> combined = [];
+
+      final List<Map<String, dynamic>> regular =
+      List<Map<String, dynamic>>.from(data['attendanceData'] ?? []);
+      final List<Map<String, dynamic>> extra =
+      List<Map<String, dynamic>>.from(data['extraLectures'] ?? []);
+
+      final subjectMap = {
+        for (var e in regular) e['subjectId']: e['subjectName']
+      };
+
+      for (var e in extra) {
+        e['subjectName'] ??= subjectMap[e['subjectId']];
+      }
+
+      final combinedRaw = [...regular, ...extra];
+      for (var entry in combinedRaw) {
+        if (entry['subjectName'] != null) {
+          combined.add(AttendanceEntry.fromJson(entry));
+        }
+      }
+
+      return combined;
+    } on SocketException {
+      throw Exception('No internet connection');
+    } on TimeoutException {
+      throw Exception('Request timed out. Please try again');
+    }
   }
 }

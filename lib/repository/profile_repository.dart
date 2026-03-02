@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:erp_app/models/login_response.dart';
@@ -29,22 +30,23 @@ class ProfileRepository {
     final url =
         'https://erp.akgec.ac.in/api/User?Id=$userId&val=0&val1=0&val2=0&val3=0';
 
-    final response = await http.get(Uri.parse(url), headers: headers);
-    print("RAW x_token: '${loginResponse.xToken}'");
+    try {
+      final response = await http
+          .get(Uri.parse(url), headers: headers)
+          .timeout(const Duration(seconds: 10));
 
-    print(response.headers);
-
-    print("STATUS: ${response.statusCode}");
-    print("BODY: ${response.body}");
-    print("HEADERS SENT: $headers");
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      print('profile---------');
-      print(response.statusCode);
-      return UserProfile.fromJson(jsonData);
-    } else {
-      throw Exception('Failed to fetch profile: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        return UserProfile.fromJson(jsonData);
+      } else if (response.statusCode == 401) {
+        throw Exception('Session expired. Please login again');
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } on SocketException {
+      throw Exception('No internet connection');
+    } on TimeoutException {
+      throw Exception('Request timed out. Please try again');
     }
   }
 }

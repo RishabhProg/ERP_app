@@ -20,12 +20,14 @@ class AuthSuccess extends AuthState {
   final String sessionId;
   final String xUserId;
   final String xToken;
+  final int expiresIn;
 
   const AuthSuccess({
     required this.accessToken,
     required this.sessionId,
     required this.xUserId,
     required this.xToken,
+    this.expiresIn = 172799
   });
 
   AuthSuccess copyWith({
@@ -42,7 +44,7 @@ class AuthSuccess extends AuthState {
     );
   }
   @override
-  List<Object> get props => [accessToken, sessionId, xUserId, xToken];
+  List<Object> get props => [accessToken, sessionId, xUserId, xToken,];
   
 }
 
