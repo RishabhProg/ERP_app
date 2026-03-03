@@ -47,7 +47,7 @@ class ProfileScreen extends StatelessWidget {
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
           if (state is ProfileLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF2E9E5B)));
           } else if (state is ProfileLoaded) {
             UserProfile profile = state.profile;
             return SingleChildScrollView(

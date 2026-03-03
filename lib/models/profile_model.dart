@@ -26,20 +26,27 @@ class UserProfile {
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
-    return UserProfile(
-      fullName:
-          "${json['firstName']} ${json['middleName'] ?? ''} ${json['lastName'] ?? ''}"
-              .trim(),
-      contactNumber: json['smsMobileNumber'] ?? '',
-      rollNumber: json['rollNumber'] ?? '',
-      semester: json['semester']?? '',
-      section: json['sectionName'] ?? '',
-      dob: json['dob']?.split("T")[0] ?? '',
-      address: json['address'] ?? '',
-      fatherName: json['fatherName'] ?? '',
-      motherName: json['motherName'] ?? '',
-      parentMobileNumber: json['parentMobileNumber'] ?? '',
-      collegeEmail: json['email'] ?? '',
-    );
+    try {
+      return UserProfile(
+        fullName: [
+          json['firstName'],
+          json['middleName'],
+          json['lastName'],
+        ].where((part) => part != null && part.toString().isNotEmpty)
+            .join(' '),
+        contactNumber: json['smsMobileNumber']?.toString() ?? '',
+        rollNumber: json['rollNumber']?.toString() ?? '',
+        semester: json['semester']?.toString() ?? '',
+        section: json['sectionName']?.toString() ?? '',
+        dob: json['dob']?.toString().split("T")[0] ?? '',
+        address: json['address']?.toString() ?? '',
+        fatherName: json['fatherName']?.toString() ?? '',
+        motherName: json['motherName']?.toString() ?? '',
+        parentMobileNumber: json['parentMobileNumber']?.toString() ?? '',
+        collegeEmail: json['email']?.toString() ?? '',
+      );
+    } catch (e) {
+      throw 'Failed to read profile data. Please try again';
+    }
   }
 }

@@ -228,8 +228,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please enter both username and password"),
+          backgroundColor: const Color(0xFFE53935),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }
@@ -269,7 +272,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                       print('login was done');
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Login Successful")),
+                        SnackBar(
+                          content: const Text("Login Successful"),
+                          backgroundColor: const Color(0xFF2E9E5B),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                       );
                       Navigator.pushReplacement(
                         context,
@@ -285,7 +293,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     } else if (state is AuthFailure) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.errorMessage)),
+                        SnackBar(
+                          content: Text(state.errorMessage),
+                          backgroundColor: const Color(0xFFE53935),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                       );
                     }
                   },
@@ -418,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                       child: state is AuthLoading
-                                          ? const CircularProgressIndicator(color: Colors.white)
+                                          ? const CircularProgressIndicator(color:  Color(0xFF2E9E5B))
                                           : const Text(
                                         'Sign In',
                                         style: TextStyle(

@@ -53,13 +53,22 @@ class AttendanceRepository {
       final List<Semester> semesters = [];
 
       for (var item in data) {
-        final int semester = item['semester'];
-        if (!seen.contains(semester)) {
-          seen.add(semester);
+        final semester = item['semester'];
+        final userId = item['userId'];
+
+        if (semester == null || userId == null) continue; // skip bad entries
+
+        final int semesterId = semester is int ? semester : int.tryParse(semester.toString()) ?? 0;
+        final int semesterUserId = userId is int ? userId : int.tryParse(userId.toString()) ?? 0;
+
+        if (semesterId == 0 || semesterUserId == 0) continue; // skip invalid
+
+        if (!seen.contains(semesterId)) {
+          seen.add(semesterId);
           semesters.add(Semester(
-            id: semester,
-            name: 'Semester $semester',
-            userId: item['userId'],
+            id: semesterId,
+            name: 'Semester $semesterId',
+            userId: semesterUserId,
           ));
         }
       }

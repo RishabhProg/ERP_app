@@ -6,12 +6,14 @@ class AttendanceState {
   final List<AttendanceEntry> attendance;
   final bool isLoading;
   final int selectedSemesterId;
+  final String? errorMessage;
 
   AttendanceState({
     this.semesters = const [],
     this.attendance = const [],
     this.isLoading = false,
     this.selectedSemesterId = 1,
+    this.errorMessage
   });
 
   AttendanceState copyWith({
@@ -19,12 +21,14 @@ class AttendanceState {
     List<AttendanceEntry>? attendance,
     bool? isLoading,
     int? selectedSemesterId,
+    String? errorMessage,
   }) {
     return AttendanceState(
       semesters: semesters ?? this.semesters,
       attendance: attendance ?? this.attendance,
       isLoading: isLoading ?? this.isLoading,
       selectedSemesterId: selectedSemesterId ?? this.selectedSemesterId,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 }

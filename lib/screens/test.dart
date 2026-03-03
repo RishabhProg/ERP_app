@@ -8,6 +8,7 @@ import 'package:erp_app/repository/final_attendance_repo.dart';
 import 'package:erp_app/screens/attendance_list.dart';
 import 'package:erp_app/screens/chart.dart';
 import 'package:erp_app/screens/pdp.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -42,9 +43,14 @@ import 'dart:ui';
 
 
 
-class Test extends StatelessWidget {
+class Test extends StatefulWidget {
   const Test({super.key});
 
+  @override
+  State<Test> createState() => _TestState();
+}
+
+class _TestState extends State<Test> {
   List<Map<String, String>> groupByDate(
     List<AttendanceEntry> entries,
     String subjectName,
@@ -68,12 +74,20 @@ class Test extends StatelessWidget {
             formatter.parse(b['date']!).compareTo(formatter.parse(a['date']!)),
       );
   }
-  
+  Future<void> _clearAndRedirect(BuildContext context) async {
+    const storage = FlutterSecureStorage();
+    await storage.deleteAll();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;  
+    double screenHeight = MediaQuery.of(context).size.height;
     return BlocProvider(
       create:
           (_) =>
@@ -92,10 +106,18 @@ class Test extends StatelessWidget {
         body: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
             if (state is ProfileLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(
+                child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
+              );
             } else if (state is ProfileLoaded) {
               UserProfile profile = state.profile;
-              return BlocBuilder<AttendanceBloc, AttendanceState>(
+              return BlocConsumer<AttendanceBloc, AttendanceState>(
+                listener: (context, state) {
+                  if (state.errorMessage != null &&
+                      state.errorMessage!.contains('Session expired')) {
+                    _clearAndRedirect(context);
+                  }
+                },
                 builder: (context, state) {
                   final bloc = context.read<AttendanceBloc>();
                   final grouped = <String, List<AttendanceEntry>>{};
@@ -596,7 +618,42 @@ class Test extends StatelessWidget {
                               ),
 
                               state.isLoading
-                                  ? const Center(child: CircularProgressIndicator())
+                                  ? Center(child: CircularProgressIndicator(color: Color(0xFF2E9E5B)))
+                                  : state.errorMessage != null
+                                  ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.wifi_off_rounded, size: 48,
+                                          color: const Color(0xFF1A1A2E).withOpacity(0.2)),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        state.errorMessage!,
+                                        style: TextStyle(
+                                          color: const Color(0xFF1A1A2E).withOpacity(0.7),
+                                          fontSize: 14,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      ElevatedButton(
+                                        onPressed: () => context.read<AttendanceBloc>()
+                                            .add(LoadSemestersAndAttendance()),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF2E9E5B),
+                                          elevation: 0,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12)),
+                                        ),
+                                        child: const Text('Retry',
+                                            style: TextStyle(color: Colors.white)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
                                   : grouped.isEmpty
                                   ? const Center(child: Text("No subjects found."))
                                   : ListView(
@@ -705,29 +762,51 @@ class Test extends StatelessWidget {
             }
 
             else if (state is ProfileError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Couldn't connect to server",
-                      style: TextStyle(color: Color(0xFF1A1A2E), fontSize: 16),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => context.read<ProfileBloc>().add(FetchProfile()),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2E9E5B),
+              return Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFF5F7FA), Color(0xFFE8EDF5)],
+                  ),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.wifi_off_rounded,
+                        size: 64,
+                        color: const Color(0xFF1A1A2E).withOpacity(0.2),
                       ),
-                      child: const Text('Retry', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text(
+                        state.error,
+                        style: TextStyle(
+                          color: const Color(0xFF1A1A2E).withOpacity(0.7),
+                          fontSize: 15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => context.read<ProfileBloc>().add(FetchProfile()),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E9E5B),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
-            return const Center(
-              child: CircularProgressIndicator(),
+            return Center(
+              child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
             );
           },
         ),
@@ -745,16 +824,16 @@ Drawer _buildDrawer(BuildContext context) {
         bottomRight: Radius.circular(24),
       ),
       child: Container(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             Container(
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.3),
-                border: Border(
-                  bottom: BorderSide(color: Colors.black.withOpacity(0.08)),
-                ),
+                // border: Border(
+                //   bottom: BorderSide(color: Colors.black.withOpacity(0.08)),
+                // ),
               ),
               child: const DrawerHeader(
                 decoration: BoxDecoration(color: Colors.transparent),
@@ -771,15 +850,19 @@ Drawer _buildDrawer(BuildContext context) {
               ),
             ),
 
-            _drawerItem(context, 'Profile', Icons.person, () {
-              final authState = BlocProvider.of<AuthBloc>(context).state;
-              if (authState is AuthSuccess) {
+            _drawerItem(context, 'Profile', Icons.person, () async {
+              const storage = FlutterSecureStorage();
+              final accessToken = await storage.read(key: 'accessToken');
+              final sessionId = await storage.read(key: 'sessionId');
+              final xUserId = await storage.read(key: 'xUserId');
+              final xToken = await storage.read(key: 'xToken');
+
+              if (accessToken != null) {
                 final loginResponse = LoginResponse(
-                  accessToken: authState.accessToken,
-                  sessionId: authState.sessionId,
-                  xUserId: authState.xUserId,
-                  xToken: authState.xToken,
-                  expiresIn: authState.expiresIn
+                  accessToken: accessToken,
+                  sessionId: sessionId!,
+                  xUserId: xUserId!,
+                  xToken: xToken!,
                 );
                 Navigator.push(
                   context,
@@ -795,13 +878,13 @@ Drawer _buildDrawer(BuildContext context) {
                 );
               }
             }),
-            _drawerItem(context, 'Assignment', Icons.assignment, () {
+            _drawerItem(context, 'Assignment', Icons.assignment, () async{
               Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignmentScreen()));
             }),
-            _drawerItem(context, 'E-Identity', Icons.badge, () {
+            _drawerItem(context, 'E-Identity', Icons.badge, () async{
               Navigator.push(context, MaterialPageRoute(builder: (_) => const EIdentityScreen()));
             }),
-            _drawerItem(context, 'PDP', Icons.badge, () {
+            _drawerItem(context, 'PDP', Icons.badge, () async{
               Navigator.push(context, MaterialPageRoute(builder: (_) => const Pdp()));
             }),
             _drawerItem(context, 'Sign Out', Icons.logout, () async {
@@ -827,7 +910,7 @@ ListTile _drawerItem(
     BuildContext context,
     String title,
     IconData icon,
-    VoidCallback onTap,
+    AsyncCallback onTap,
     ) {
   return ListTile(
     leading: Icon(icon, color: const Color(0xFF1A1A2E).withOpacity(0.7)),
