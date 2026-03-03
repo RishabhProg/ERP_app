@@ -857,6 +857,8 @@ Drawer _buildDrawer(BuildContext context) {
               final xUserId = await storage.read(key: 'xUserId');
               final xToken = await storage.read(key: 'xToken');
 
+              final attendanceBloc = context.read<AttendanceBloc>();
+
               if (accessToken != null) {
                 final loginResponse = LoginResponse(
                   accessToken: accessToken,
@@ -872,7 +874,9 @@ Drawer _buildDrawer(BuildContext context) {
                         profileRepository: ProfileRepository(),
                         loginResponse: loginResponse,
                       )..add(FetchProfile()),
-                      child: const ProfileScreen(),
+                      child: ProfileScreen(
+                        attendanceBloc: attendanceBloc,
+                      ),
                     ),
                   ),
                 );

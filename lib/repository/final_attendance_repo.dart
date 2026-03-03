@@ -69,6 +69,8 @@ class AttendanceRepository {
             id: semesterId,
             name: 'Semester $semesterId',
             userId: semesterUserId,
+            courseName: item['courseName']?.toString() ?? '',
+            batchName: item['batchName']?.toString() ?? '',
           ));
         }
       }
