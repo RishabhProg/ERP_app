@@ -37,9 +37,13 @@ import 'package:erp_app/screens/att_calender.dart';
 import 'package:erp_app/screens/splashwrapper.dart';
 import 'package:lottie/lottie.dart';
 //import '../blocs/attendance_bloc.dart';
+import '../bloc/TT_bloc/tt_bloc.dart';
 import '../models/attendance_model.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:ui';
+import 'package:erp_app/screens/transport_attendance_screen.dart';
+
+import '../repository/transport_attendance_repo.dart';
 
 
 
@@ -102,7 +106,17 @@ class _TestState extends State<Test> {
         // ),
         //backgroundColor: Colors.white,
         drawerScrimColor: Colors.transparent,
-        drawer: _buildDrawer(context),
+        drawer: BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, state) {
+            String rollNumber = "";
+
+            if (state is ProfileLoaded) {
+              rollNumber = state.profile.rollNumber ?? "";
+            }
+
+            return _buildDrawer(context, rollNumber);
+          },
+        ),
         body: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
             if (state is ProfileLoading) {
@@ -815,7 +829,7 @@ class _TestState extends State<Test> {
   }
 }
 
-Drawer _buildDrawer(BuildContext context) {
+Drawer _buildDrawer(BuildContext context, String rollNumber) {
   return Drawer(
     backgroundColor: Colors.transparent,
     child: ClipRRect(
@@ -891,6 +905,27 @@ Drawer _buildDrawer(BuildContext context) {
             _drawerItem(context, 'PDP', Icons.badge, () async{
               Navigator.push(context, MaterialPageRoute(builder: (_) => const Pdp()));
             }),
+
+            _drawerItem(
+              context,
+              'Transport Attendance',
+              Icons.directions_bus_rounded,
+                  () async {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (_) => TransportAttendanceBloc(
+                        TransportAttendanceRepo(const FlutterSecureStorage()),
+                      ),
+                      child: MandatoryAttendanceScreen(
+                        admissionNumber: rollNumber,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
             _drawerItem(context, 'Sign Out', Icons.logout, () async {
               final storage = FlutterSecureStorage();
               await storage.delete(key: 'accessToken');

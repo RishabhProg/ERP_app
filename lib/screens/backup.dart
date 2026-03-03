@@ -713,7 +713,7 @@ Drawer _buildDrawer(BuildContext context) {
                               profileRepository: ProfileRepository(),
                               loginResponse: loginResponse,
                             )..add(FetchProfile()),
-                        child: const ProfileScreen(),
+                        // child: const ProfileScreen(),
                       ),
                 ),
               );
