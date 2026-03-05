@@ -8,6 +8,7 @@ import '../bloc/final_attendance_Bloc/final_attendance_bloc.dart';
 import '../bloc/final_attendance_Bloc/final_attendance_state.dart';
 import '../bloc/profile_bloc/profile_bloc.dart';
 import '../bloc/profile_bloc/profile_event.dart';
+import '../screens/footer.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String courseName;
@@ -275,8 +276,8 @@ class ProfileScreen extends StatelessWidget {
                           _infoRow("Parent Contact", profile.parentMobileNumber),
                           _infoRow("Address", profile.address),
                         ]),
-
-                        const SizedBox(height: 30),
+                        const AppFooter(),
+                       // const SizedBox(height: 30),
                       ],
                     ),
                   );

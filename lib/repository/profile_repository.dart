@@ -39,14 +39,14 @@ class ProfileRepository {
         final jsonData = json.decode(response.body);
         return UserProfile.fromJson(jsonData);
       } else if (response.statusCode == 401) {
-        throw Exception('Session expired. Please login again');
+        throw ('Session expired. Please login again');
       } else {
-        throw Exception('Server error: ${response.statusCode}');
+        throw ('Server error: ${response.statusCode}');
       }
     } on SocketException {
-      throw Exception('No internet connection');
+      throw ('No internet connection');
     } on TimeoutException {
-      throw Exception('Request timed out. Please try again');
+      throw ('Request timed out. Please try again');
     }
   }
 }

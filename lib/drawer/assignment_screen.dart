@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
+import '../screens/footer.dart';
+
 class AssignmentScreen extends StatelessWidget {
   const AssignmentScreen({super.key});
 
@@ -46,7 +48,7 @@ class AssignmentScreen extends StatelessWidget {
                   ),
                 ),
 
-                const Spacer(flex: 7,),
+                const Spacer(flex: 8,),
 
                 Icon(
                   Icons.assignment_outlined,
@@ -72,6 +74,7 @@ class AssignmentScreen extends StatelessWidget {
                 ),
 
                 const Spacer(flex: 10),
+                const AppFooter(),
               ],
             ),
           ),

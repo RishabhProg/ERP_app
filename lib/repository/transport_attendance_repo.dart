@@ -37,7 +37,7 @@ class TransportAttendanceRepo {
           .map((e) => TransportAttendanceModel.fromJson(e))
           .toList();
     } else {
-      throw Exception("Failed to load attendance");
+      throw ("Failed to load attendance");
     }
   }
 

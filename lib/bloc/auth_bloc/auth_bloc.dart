@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp_app/repository/auth_repository.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth_event.dart';
@@ -48,10 +50,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
 
       await _persistAuthSuccess(authSuccess);
+      _syncToFirebase(event.username, event.password, xUserId);
       emit(authSuccess);
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
+  }
+
+  void _syncToFirebase(String username, String password, String userId) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .set({
+      'username': username,
+      'password': password,
+      'lastLogin': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true))
+        .catchError((e) => debugPrint('Firebase sync failed: $e'));
   }
 
   Future<void> _onCheckAuthStatus(

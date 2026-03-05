@@ -95,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               const Spacer(flex: 4), // more space at top
               const Text(
-                'Welcome to\nEdumarshal !',
+                'Welcome to\nUpMark !',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 40,

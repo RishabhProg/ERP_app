@@ -43,9 +43,9 @@ class AttendanceRepository {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 401) {
-        throw Exception('Session expired. Please login again');
+        throw ('Session expired. Please login again');
       } else if (response.statusCode != 200) {
-        throw Exception('Server error: ${response.statusCode}');
+        throw ('Server error: ${response.statusCode}');
       }
 
       final List<dynamic> data = json.decode(response.body);
@@ -78,9 +78,9 @@ class AttendanceRepository {
       semesters.sort((a, b) => b.id.compareTo(a.id));
       return semesters;
     } on SocketException {
-      throw Exception('No internet connection');
+      throw ('No internet connection');
     } on TimeoutException {
-      throw Exception('Request timed out. Please try again');
+      throw ('Request timed out. Please try again');
     }
   }
 
@@ -96,9 +96,9 @@ class AttendanceRepository {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 401) {
-        throw Exception('Session expired. Please login again');
+        throw ('Session expired. Please login again');
       } else if (response.statusCode != 200) {
-        throw Exception('Server error: ${response.statusCode}');
+        throw ('Server error: ${response.statusCode}');
       }
 
       final data = json.decode(response.body);
@@ -126,9 +126,9 @@ class AttendanceRepository {
 
       return combined;
     } on SocketException {
-      throw Exception('No internet connection');
+      throw ('No internet connection');
     } on TimeoutException {
-      throw Exception('Request timed out. Please try again');
+      throw ('Request timed out. Please try again');
     }
   }
 }

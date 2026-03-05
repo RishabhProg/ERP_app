@@ -8,13 +8,16 @@ import 'package:erp_app/repository/attendance_repo.dart';
 import 'package:erp_app/repository/final_attendance_repo.dart';
 import 'package:erp_app/screens/attendance_info.dart';
 import 'package:erp_app/screens/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_app/repository/auth_repository.dart';
 import 'package:erp_app/repository/profile_repository.dart';
 import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 

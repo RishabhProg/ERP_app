@@ -44,6 +44,7 @@ import 'dart:ui';
 import 'package:erp_app/screens/transport_attendance_screen.dart';
 
 import '../repository/transport_attendance_repo.dart';
+import 'footer.dart';
 
 
 
@@ -764,7 +765,10 @@ class _TestState extends State<Test> {
 
                                       //  }).toList(),
                                   ),
+
+                              if (!state.isLoading && state.errorMessage == null) const AppFooter(),
                             ],
+
                           ),
                         ),
                       ),
@@ -902,14 +906,14 @@ Drawer _buildDrawer(BuildContext context, String rollNumber) {
             _drawerItem(context, 'E-Identity', Icons.badge, () async{
               Navigator.push(context, MaterialPageRoute(builder: (_) => const EIdentityScreen()));
             }),
-            _drawerItem(context, 'PDP', Icons.badge, () async{
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const Pdp()));
-            }),
+            // _drawerItem(context, 'PDP', Icons.badge, () async{
+            //   Navigator.push(context, MaterialPageRoute(builder: (_) => const Pdp()));
+            // }),
 
             _drawerItem(
               context,
-              'Transport Attendance',
-              Icons.directions_bus_rounded,
+              'Technical Training',
+              Icons.computer_outlined,
                   () async {
                 Navigator.push(
                   context,
@@ -926,18 +930,19 @@ Drawer _buildDrawer(BuildContext context, String rollNumber) {
                 );
               },
             ),
+
+
+            //const SizedBox(height: 400),
             _drawerItem(context, 'Sign Out', Icons.logout, () async {
               final storage = FlutterSecureStorage();
-              await storage.delete(key: 'accessToken');
-              await storage.delete(key: 'sessionId');
-              await storage.delete(key: 'xUserId');
-              await storage.delete(key: 'xToken');
+              await storage.deleteAll();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const HomeScreen()),
                     (Route<dynamic> route) => false,
               );
-            }),
+            }, color: const Color(0xFFE53935)
+            ),
           ],
         ),
       ),
@@ -949,14 +954,17 @@ ListTile _drawerItem(
     BuildContext context,
     String title,
     IconData icon,
-    AsyncCallback onTap,
+    AsyncCallback onTap, {
+      Color? color
+    }
     ) {
+      final itemColor = color ?? const Color(0xFF1A1A2E);
   return ListTile(
-    leading: Icon(icon, color: const Color(0xFF1A1A2E).withOpacity(0.7)),
+    leading: Icon(icon, color: itemColor.withOpacity(0.7)),
     title: Text(
       title,
       style: TextStyle(
-        color: const Color(0xFF1A1A2E),
+        color: itemColor,
         fontWeight: FontWeight.w500,
         fontSize: 15,
       ),
