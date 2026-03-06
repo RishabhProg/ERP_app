@@ -160,22 +160,25 @@ class _TestState extends State<Test> {
                      gradient: LinearGradient(
                        begin: Alignment.topLeft,
                        end: Alignment.bottomRight,
-                       colors: [Color(0xFFF5F7FA), Color(0xFFE8EDF5)],
+                       colors: [ Color(0xFF141840),
+                         Color(0xFF020617),
+                         Color(0xFF1C1736),],
+                       stops: [0.0, 0.5, 1.0],
                      ),
                    ),
                    child: Stack(
                      children: [
-                       Positioned.fill(
-                         child: Opacity(
-                           opacity: 0.3,
-                           child: Lottie.asset(
-                             'assets/night.json',
-                             frameRate: FrameRate(30),
-                             fit: BoxFit.cover,
-                             repeat: true,
-                           ),
-                         ),
-                       ),
+                       // Positioned.fill(
+                       //   child: Opacity(
+                       //     opacity: 0.3,
+                       //     child: Lottie.asset(
+                       //       'assets/night.json',
+                       //       frameRate: FrameRate(30),
+                       //       fit: BoxFit.cover,
+                       //       repeat: true,
+                       //     ),
+                       //   ),
+                       // ),
                       SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
                         child: Padding(
@@ -214,14 +217,14 @@ class _TestState extends State<Test> {
                                                           style: const TextStyle(
                                                             fontSize: 16,
                                                             fontWeight: FontWeight.w600,
-                                                            color: Color(0xFF1A1A2E),
+                                                            color: Colors.white,
                                                           ),
                                                         ),
                                                         const SizedBox(height: 2),
                                                         Text(
                                                           profile.collegeEmail,
-                                                          style: const TextStyle(
-                                                            color: Color(0xFF555770),
+                                                          style:  TextStyle(
+                                                            color: Colors.white.withOpacity(0.5),
                                                             fontSize: 14,
                                                           ),
                                                           overflow: TextOverflow.ellipsis,
@@ -232,36 +235,47 @@ class _TestState extends State<Test> {
                                                   const SizedBox(width: 20),
                                                   Theme(
                                                     data: Theme.of(context).copyWith(
-                                                      canvasColor: Colors.white,
+                                                      canvasColor: const Color(0xFF1E2235).withOpacity(0.9),
                                                     ),
                                                     child: SizedBox(
                                                       width: 140,
-                                                      child: DropdownButtonFormField<int>(
-                                                        value: state.selectedSemesterId,
-                                                        decoration: InputDecoration(
-                                                          border: OutlineInputBorder(
-                                                            borderRadius: BorderRadius.circular(8),
-                                                            borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+                                                      child: ClipRRect(
+                                                        borderRadius: BorderRadius.circular(30),
+                                                        child: BackdropFilter(
+                                                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                                          child: DropdownButtonFormField<int>(
+                                                            value: state.selectedSemesterId,
+                                                            icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white),
+                                                            decoration: InputDecoration(
+                                                              border: OutlineInputBorder(
+                                                                borderRadius: BorderRadius.circular(30),
+                                                                borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+                                                              ),
+                                                              enabledBorder: OutlineInputBorder(
+                                                                borderRadius: BorderRadius.circular(30),
+                                                                borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+                                                              ),
+                                                              focusedBorder: OutlineInputBorder(
+                                                                borderRadius: BorderRadius.circular(30),
+                                                                borderSide: BorderSide(color: Colors.white.withOpacity(0.25)),
+                                                              ),
+                                                              isDense: true,
+                                                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                                              filled: true,
+                                                              fillColor: Colors.white.withOpacity(0.08),
+                                                            ),
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 15,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                            items: state.semesters.map((sem) => DropdownMenuItem(
+                                                              value: sem.id,
+                                                              child: Text(sem.name, style: const TextStyle(color: Colors.white)),
+                                                            )).toList(),
+                                                            onChanged: (id) => bloc.add(ChangeSemester(id!)),
                                                           ),
-                                                          enabledBorder: OutlineInputBorder(
-                                                            borderRadius: BorderRadius.circular(8),
-                                                            borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
-                                                          ),
-                                                          focusedBorder: OutlineInputBorder(
-                                                            borderRadius: BorderRadius.circular(8),
-                                                            borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
-                                                          ),
-                                                          isDense: true,
-                                                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                                          filled: true,
-                                                          fillColor: Colors.white.withOpacity(0.6),
                                                         ),
-                                                        style: const TextStyle(color: Color(0xFF1A1A2E)),
-                                                        items: state.semesters.map((sem) => DropdownMenuItem(
-                                                          value: sem.id,
-                                                          child: Text(sem.name, style: const TextStyle(color: Color(0xFF1A1A2E))),
-                                                        )).toList(),
-                                                        onChanged: (id) => bloc.add(ChangeSemester(id!)),
                                                       ),
                                                     ),
                                                   ),
@@ -275,153 +289,212 @@ class _TestState extends State<Test> {
                                     const SizedBox(height: 40),
 
                                     // Bottom section (no Lottie background)
-                                    if (!state.isLoading)
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(18),
-                                          child: BackdropFilter(
-                                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(18),
-                                                color: Colors.white.withOpacity(0.25),
-                                                border: Border.all(
-                                                  color: Colors.white.withOpacity(0.5),
-                                                  width: 1.5,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.white.withOpacity(0.1),
-                                                    blurRadius: 20,
-                                                    spreadRadius: 2,
-                                                  ),
-                                                  BoxShadow(
-                                                    color: Colors.black.withOpacity(0.08),
-                                                    blurRadius: 30,
-                                                    offset: const Offset(0, 8),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(16),
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Expanded(
-                                                      flex: 2,
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          const Text(
-                                                            "Overall Attendance",
-                                                            style: TextStyle(
-                                                              fontSize: 22,
-                                                              fontWeight: FontWeight.bold,
-                                                              color: Color(0xFF1A1A2E),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 8),
-                                                          Text(
-                                                            "Total Classes: $total",
-                                                            style: TextStyle(
-                                                              color: Colors.black.withOpacity(0.6),
-                                                              fontSize: 16,
-                                                            ),
-                                                          ),
-                                                          Text(
-                                                            "Total Presents: $present",
-                                                            style: TextStyle(
-                                                              color: Colors.black.withOpacity(0.6),
-                                                              fontSize: 16,
-                                                            ),
-                                                          ),
-                                                          Text(
-                                                            "Overall Percentage: $percent%",
-                                                            style: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              color: double.parse(percent) < 75
-                                                                  ? const Color(0xFFE53935)
-                                                                  : const Color(0xFF2E7D32),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 6),
-                                                          Text(
-                                                            percentAsDouble >= 75
-                                                                ? 'You can miss $allowedMisses more class${allowedMisses == 1 ? '' : 'es'}'
-                                                                : 'Attend $requiredPresents more class${requiredPresents == 1 ? '' : 'es'} to reach 75%',
-                                                            style: TextStyle(
-                                                              fontSize: 13,
-                                                              fontWeight: FontWeight.w500,
-                                                              color: percentAsDouble >= 75
-                                                                  ? const Color(0xFF2E9E5B)
-                                                                  : const Color(0xFFE53935),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                        // Replace the entire overall attendance card with this:
+
+                                        if (!state.isLoading)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(20),
+                                              child: BackdropFilter(
+                                                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(20),
+                                                    color: Colors.white.withOpacity(0.05),
+                                                    border: Border.all(
+                                                      color: Colors.white.withOpacity(0.1),
+                                                      width: 1.5,
                                                     ),
-                                                    const SizedBox(width: 16),
-                                                    SizedBox(
-                                                      width: 120,
-                                                      height: 120,
-                                                      child: Stack(
-                                                        alignment: Alignment.center,
+                                                  ),
+                                                  padding: const EdgeInsets.all(20),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      // Header
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                         children: [
-                                                        Circlify(
-                                                        segmentWidth: 10,
-                                                        labelStyle: const TextStyle(
-                                                          color: Color(0xFF1A1A2E),
-                                                          fontSize: 20,
-                                                          fontWeight: FontWeight.w700,
-                                                        ),
-                                                        items: [
-                                                          CirclifyItem(
-                                                            id: '2',
-                                                            color: const Color(0xFF2E7D32),
-                                                            value: double.parse(percent),
-                                                            label: '',
+                                                          Text(
+                                                            'ATTENDANCE ANALYTICS',
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.w700,
+                                                              color: Colors.white.withOpacity(0.5),
+                                                              letterSpacing: 1.2,
+                                                            ),
                                                           ),
-                                                          CirclifyItem(
-                                                            id: '1',
-                                                            color: const Color(0xFFE53935),
-                                                            value: 100 - double.parse(percent),
-                                                            label: '',
-                                                          ),
+                                                          Icon(Icons.show_chart_rounded,
+                                                              color: Colors.white.withOpacity(0.4), size: 20),
                                                         ],
                                                       ),
-                                                          RichText(
-                                                            text: TextSpan(
+
+                                                      const SizedBox(height: 20),
+
+                                                      // Circle + Grid row
+                                                      Row(
+                                                        children: [
+                                                          // Circle chart
+                                                          SizedBox(
+                                                            width: 120,
+                                                            height: 120,
+                                                            child: Stack(
+                                                              alignment: Alignment.center,
                                                               children: [
-                                                                TextSpan(
-                                                                  text: percent.split('.')[0],
-                                                                  style: const TextStyle(
-                                                                    fontSize: 25,
-                                                                    fontWeight: FontWeight.w300,
-                                                                    color: Color(0xFF1A1A2E),
+                                                                Circlify(
+                                                                  segmentWidth: 10,
+                                                                  labelStyle: const TextStyle(fontSize: 0),
+                                                                  items: [
+                                                                    CirclifyItem(
+                                                                      id: '2',
+                                                                      color: const Color(0xFF7B6FF0),
+                                                                      value: double.parse(percent),
+                                                                      label: '',
+                                                                    ),
+                                                                    CirclifyItem(
+                                                                      id: '1',
+                                                                      color: Colors.white.withOpacity(0.08),
+                                                                      value: 100 - double.parse(percent),
+                                                                      label: '',
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                RichText(
+                                                                  text: TextSpan(
+                                                                    children: [
+                                                                      TextSpan(
+                                                                        text: percent,
+                                                                        style: const TextStyle(
+                                                                          fontSize: 26,
+                                                                          fontWeight: FontWeight.w700,
+                                                                          color: Colors.white,
+                                                                        ),
+                                                                      ),
+                                                                      const TextSpan(
+                                                                        text: '%',
+                                                                        style: TextStyle(
+                                                                          fontSize: 14,
+                                                                          fontWeight: FontWeight.w400,
+                                                                          color: Colors.white,
+                                                                        ),
+                                                                      ),
+                                                                    ],
                                                                   ),
                                                                 ),
-                                                                TextSpan(
-                                                                  text: ".${percent.split('.')[1]}%",
-                                                                  style: const TextStyle(
-                                                                    fontSize: 15,
-                                                                    fontWeight: FontWeight.w300,
-                                                                    color: Color(0xFF1A1A2E),
-                                                                  ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          const SizedBox(width: 16),
+
+                                                          // Stats grid
+                                                          Expanded(
+                                                            child: Column(
+                                                              children: [
+                                                                Row(
+                                                                  children: [
+                                                                    _statBox(
+                                                                      '$present',
+                                                                      'PRESENT',
+                                                                      const Color(0xFF2E9E5B),
+                                                                      const Color(0xFF1A2E22),
+                                                                    ),
+                                                                    const SizedBox(width: 10),
+                                                                    _statBox(
+                                                                      '${total - present}',
+                                                                      'ABSENT',
+                                                                      const Color(0xFFE53935),
+                                                                      const Color(0xFF2E1A1A),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                const SizedBox(height: 10),
+                                                                Row(
+                                                                  children: [
+                                                                    _statBox(
+                                                                      '$total',
+                                                                      'TOTAL',
+                                                                      Colors.white,
+                                                                      Colors.white.withOpacity(0.06),
+                                                                    ),
+                                                                    const SizedBox(width: 10),
+                                                                    _statBox(
+                                                                      percentAsDouble >= 75 ? '$allowedMisses' : '$requiredPresents',
+                                                                      percentAsDouble >= 75 ? 'MISS UP TO' : 'NEED TO ATTEND',
+                                                                      const Color(0xFF7B6FF0),
+                                                                      const Color(0xFF1E1A2E),
+                                                                    ),
+                                                                  ],
                                                                 ),
                                                               ],
                                                             ),
                                                           ),
                                                         ],
                                                       ),
-                                                    ),
-                                                  ],
+
+                                                      const SizedBox(height: 16),
+
+                                                      // Bottom message
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white.withOpacity(0.05),
+                                                          borderRadius: BorderRadius.circular(12),
+                                                          border: Border.all(color: Colors.white.withOpacity(0.08)),
+                                                        ),
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(
+                                                              percentAsDouble >= 75
+                                                                  ? Icons.verified_outlined
+                                                                  : Icons.warning_amber_rounded,
+                                                              color: percentAsDouble >= 75
+                                                                  ? const Color(0xFF2E9E5B)
+                                                                  : const Color(0xFFE53935),
+                                                              size: 18,
+                                                            ),
+                                                            const SizedBox(width: 10),
+                                                            Expanded(
+                                                              child: Text.rich(
+                                                                TextSpan(
+                                                                  style: const TextStyle(
+                                                                      fontSize: 13, color: Colors.white70),
+                                                                  children: percentAsDouble >= 75
+                                                                      ? [
+                                                                    const TextSpan(
+                                                                        text: 'Your attendance is '),
+                                                                    TextSpan(
+                                                                      text:
+                                                                      '${(percentAsDouble - 75).toStringAsFixed(2)}% above',
+                                                                      style: const TextStyle(
+                                                                          color: Color(0xFF2E9E5B),
+                                                                          fontWeight: FontWeight.w600),
+                                                                    ),
+                                                                    const TextSpan(
+                                                                        text: ' the minimum requirement.'),
+                                                                  ]
+                                                                      : [
+                                                                    TextSpan(text: 'Your attendance is '),
+                                                                    TextSpan(
+                                                                      text: '${(75 - percentAsDouble).toStringAsFixed(2)}% below',
+                                                                      style: const TextStyle(
+                                                                          color: Color(0xFFE53935),
+                                                                          fontWeight: FontWeight.w600),
+                                                                    ),
+                                                                    const TextSpan(text: ' the minimum requirement.'),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
                                   ],
                                 ),
 
@@ -614,20 +687,35 @@ class _TestState extends State<Test> {
                               //   ),
                               // ),
                               //const SizedBox(height: 20),
-                              const Padding(
+                               Padding(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 16.0,
                                   vertical: 8.0,
                                 ),
                                 child: Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    "All Subjects",
-                                      style: const TextStyle(
-                                        color: Color(0xFF1A1A2E),
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w600,
-                                      )
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'All Subjects',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'ATTENDANCE OVERVIEW',
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.4),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 1.5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -831,6 +919,40 @@ class _TestState extends State<Test> {
       ),
     );
   }
+}
+
+Widget _statBox(String value, String label, Color valueColor, Color bgColor) {
+  return Expanded(
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withOpacity(0.4),
+              letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 Drawer _buildDrawer(BuildContext context, String rollNumber) {

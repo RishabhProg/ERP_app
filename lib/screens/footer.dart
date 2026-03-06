@@ -12,7 +12,7 @@ class AppFooter extends StatelessWidget {
           'Designed & Developed by\nBig Data Centre of Excellence',
           style: TextStyle(
             fontSize: 11,
-            color: const Color(0xFF1A1A2E).withOpacity(0.9),
+            color:  Colors.white.withOpacity(0.7),
             letterSpacing: 0.3,
           ),
           textAlign: TextAlign.center,

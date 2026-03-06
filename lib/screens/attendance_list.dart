@@ -30,7 +30,8 @@ class _SubjectAttendanceTileState extends State<SubjectAttendanceTile> {
   Widget build(BuildContext context) {
     final double percentValue = double.tryParse(widget.percent) ?? 0;
     final bool isLow = percentValue < 75;
-    final Color statusColor = isLow ? const Color(0xFFE53935) : const Color(0xFF3DAA70);
+    final Color statusColor =
+    isLow ? const Color(0xFFE53935) : const Color(0xFF3DAA70);
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
@@ -38,184 +39,211 @@ class _SubjectAttendanceTileState extends State<SubjectAttendanceTile> {
       alignment: Alignment.topCenter,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Container(
-              decoration: BoxDecoration(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            color: Colors.white.withOpacity(0.05),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              InkWell(
+                onTap: () => setState(() => _isExpanded = !_isExpanded),
                 borderRadius: BorderRadius.circular(14),
-                color: Colors.white.withOpacity(0.5),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.7),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    title: Text(
-                      widget.subject,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                        color: Color(0xFF1A1A2E),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  child: Row(
+                    children: [
+                      // Vertical color bar
+                      Container(
+                        width: 4,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(14),
+                            bottomLeft: Radius.circular(14),
+                          ),
+                        ),
                       ),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: [
-                          Text(
-                            "${widget.present} / ${widget.total}",
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: const Color(0xFF1A1A2E).withOpacity(0.5),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: statusColor.withOpacity(0.4)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: statusColor.withOpacity(0.2),
-                                  blurRadius: 1,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              "${widget.percent}%",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: statusColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.calendar_month_outlined,
-                            color: const Color(0xFF1A1A2E).withOpacity(0.5),
-                            size: 20,
-                          ),
-                          onPressed: () => _showCalendarDialog(context),
-                        ),
-                        Icon(
-                          _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                          color: const Color(0xFF1A1A2E).withOpacity(0.4),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                    onTap: () => setState(() => _isExpanded = !_isExpanded),
-                  ),
-                  if (_isExpanded) ...[
-                    Divider(
-                      height: 1,
-                      color: Colors.black.withOpacity(0.08),
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-                    GestureDetector(
-                      onTap: () => setState(() => _isExpanded = false),
-                      child: widget.groupedByDate.isEmpty
-                          ? Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          "No attendance data.",
-                          style: TextStyle(
-                            color: const Color(0xFF1A1A2E).withOpacity(0.4),
-                            fontSize: 14,
-                          ),
-                        ),
-                      )
-                          : Column(
-                        children: widget.groupedByDate.map((item) {
-                          final status = item['status'] ?? '';
-                          final date = item['date'] ?? 'Unknown Date';
+                      const SizedBox(width: 16),
 
-                          return ListTile(
-                            dense: false,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0.1), // reduced from 6
-                            title: Text(
-                              date,
-                              style: TextStyle(
-                                fontSize: 16,
-                                //fontWeight: FontWeight.w300,
-                                color: const Color(0xFF1A1A2E).withOpacity(0.7),
+                      // Content
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.subject,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 17,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: status.split('').map((char) {
-                                final isAbsent = char == 'A';
-                                return Container(
-                                  width: 34,         // increased from 32
-                                  height: 34,        // increased from 32
-                                  margin: const EdgeInsets.only(left: 6),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: (isAbsent
-                                        ? const Color(0xFFE53935)
-                                        : const Color(0xFF2E7D32))
-                                        .withOpacity(0.1),
-                                    border: Border.all(
-                                      color: (isAbsent
-                                          ? const Color(0xFFE53935)
-                                          : const Color(0xFF2E7D32))
-                                          .withOpacity(0.4),
-                                      width: 1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: (isAbsent
-                                            ? const Color(0xFFE53935)
-                                            : const Color(0xFF2E9E5B))
-                                            .withOpacity(0.2),
-                                        blurRadius: 1,
-                                        spreadRadius: 1,
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'ATTENDED',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white.withOpacity(0.4),
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "${widget.present} / ${widget.total}",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ],
                                   ),
-                                  child: Center(
+                                  const SizedBox(width: 16),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                          color: statusColor.withOpacity(0.5)),
+                                    ),
                                     child: Text(
-                                      char,
+                                      "${widget.percent}%",
                                       style: TextStyle(
-                                        fontSize: 15,    // increased from 13
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w700,
-                                        color: isAbsent
-                                            ? const Color(0xFFE53935)
-                                            : const Color(0xFF2E7D32),
+                                        color: statusColor,
                                       ),
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                            ),
-                          );
-                        }).toList(),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Trailing icons
+                      Column(
+                        children: [
+                          // IconButton(
+                          //   icon: Icon(
+                          //     Icons.calendar_month_outlined,
+                          //     color: Colors.white.withOpacity(0.4),
+                          //     size: 20,
+                          //   ),
+                          //   onPressed: () => _showCalendarDialog(context),
+                          // ),
+                          Icon(
+                            _isExpanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.white.withOpacity(0.4),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ),
+                ),
+              ),
+              if (_isExpanded) ...[
+                Divider(
+                  height: 1,
+                  color: Colors.white.withOpacity(0.08),
+                  indent: 16,
+                  endIndent: 16,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _isExpanded = false),
+                  child: widget.groupedByDate.isEmpty
+                      ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      "No attendance data.",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.3),
+                        fontSize: 14,
                       ),
                     ),
-                  ],
-                ],
-              ),
-            ),
+                  )
+                      : Column(
+                    children: widget.groupedByDate.map((item) {
+                      final status = item['status'] ?? '';
+                      final date = item['date'] ?? 'Unknown Date';
+
+                      return ListTile(
+                        dense: false,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 0.1),
+                        title: Text(
+                          date,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: status.split('').map((char) {
+                            final isAbsent = char == 'A';
+                            return Container(
+                              width: 34,
+                              height: 34,
+                              margin: const EdgeInsets.only(left: 6),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: (isAbsent
+                                    ? const Color(0xFFE53935)
+                                    : const Color(0xFF2E7D32))
+                                    .withOpacity(0.1),
+                                border: Border.all(
+                                  color: (isAbsent
+                                      ? const Color(0xFFE53935)
+                                      : const Color(0xFF2E7D32))
+                                      .withOpacity(0.4),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  char,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: isAbsent
+                                        ? const Color(0xFFE53935)
+                                        : const Color(0xFF2E7D32),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -230,7 +258,8 @@ class _SubjectAttendanceTileState extends State<SubjectAttendanceTile> {
       if (dateStr != null && status != null) {
         try {
           final parsed = inputFormat.parse(dateStr);
-          final normalizedDate = DateTime(parsed.year, parsed.month, parsed.day);
+          final normalizedDate =
+          DateTime(parsed.year, parsed.month, parsed.day);
           statusByDate.update(
             normalizedDate,
                 (existing) => existing + status,
@@ -252,20 +281,21 @@ class _SubjectAttendanceTileState extends State<SubjectAttendanceTile> {
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.85),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+              color: const Color(0xFF1A1F2E).withOpacity(0.95),
+              borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(
+                  color: Colors.white.withOpacity(0.1), width: 1.5),
             ),
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Handle bar
                 Container(
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.15),
+                    color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -273,7 +303,7 @@ class _SubjectAttendanceTileState extends State<SubjectAttendanceTile> {
                 Text(
                   widget.subject,
                   style: const TextStyle(
-                    color: Color(0xFF1A1A2E),
+                    color: Colors.white,
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -287,14 +317,17 @@ class _SubjectAttendanceTileState extends State<SubjectAttendanceTile> {
                     lastDay: DateTime.utc(2025, 12, 31),
                     focusedDay: DateTime.now(),
                     calendarStyle: CalendarStyle(
-                      defaultTextStyle: const TextStyle(color: Color(0xFF1A1A2E)),
-                      weekendTextStyle: TextStyle(color: const Color(0xFF1A1A2E).withOpacity(0.6)),
-                      outsideTextStyle: TextStyle(color: const Color(0xFF1A1A2E).withOpacity(0.25)),
+                      defaultTextStyle: const TextStyle(color: Colors.white),
+                      weekendTextStyle:
+                      TextStyle(color: Colors.white.withOpacity(0.6)),
+                      outsideTextStyle:
+                      TextStyle(color: Colors.white.withOpacity(0.2)),
                       todayTextStyle: const TextStyle(color: Colors.white),
-                      disabledTextStyle: TextStyle(color: const Color(0xFF1A1A2E).withOpacity(0.2)),
+                      disabledTextStyle:
+                      TextStyle(color: Colors.white.withOpacity(0.15)),
                       selectedTextStyle: const TextStyle(color: Colors.white),
                       todayDecoration: const BoxDecoration(
-                        color: Color(0xFF5C7CFA),
+                        color: Color(0xFF7B6FF0),
                         shape: BoxShape.circle,
                       ),
                       markerDecoration: const BoxDecoration(
@@ -304,42 +337,40 @@ class _SubjectAttendanceTileState extends State<SubjectAttendanceTile> {
                     ),
                     headerStyle: HeaderStyle(
                       titleTextStyle: const TextStyle(
-                        color: Color(0xFF1A1A2E),
+                        color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
                       formatButtonVisible: false,
-                      leftChevronIcon: Icon(
-                        Icons.chevron_left,
-                        color: const Color(0xFF1A1A2E).withOpacity(0.6),
-                      ),
-                      rightChevronIcon: Icon(
-                        Icons.chevron_right,
-                        color: const Color(0xFF1A1A2E).withOpacity(0.6),
-                      ),
+                      leftChevronIcon: Icon(Icons.chevron_left,
+                          color: Colors.white.withOpacity(0.6)),
+                      rightChevronIcon: Icon(Icons.chevron_right,
+                          color: Colors.white.withOpacity(0.6)),
                     ),
                     daysOfWeekStyle: DaysOfWeekStyle(
                       weekdayStyle: TextStyle(
-                        color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                        color: Colors.white.withOpacity(0.5),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                       weekendStyle: TextStyle(
-                        color: const Color(0xFF1A1A2E).withOpacity(0.35),
+                        color: Colors.white.withOpacity(0.3),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     calendarBuilders: CalendarBuilders(
                       markerBuilder: (context, date, events) {
-                        final normalized = DateTime(date.year, date.month, date.day);
+                        final normalized =
+                        DateTime(date.year, date.month, date.day);
                         final status = statusByDate[normalized];
                         if (status != null && status.isNotEmpty) {
                           List<Widget> dots = status.split('').map((char) {
                             return Container(
                               width: 6,
                               height: 6,
-                              margin: const EdgeInsets.symmetric(horizontal: 1),
+                              margin:
+                              const EdgeInsets.symmetric(horizontal: 1),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: char == 'A'

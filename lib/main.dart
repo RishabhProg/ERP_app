@@ -14,6 +14,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_app/repository/auth_repository.dart';
 import 'package:erp_app/repository/profile_repository.dart';
 import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+Future<void> clearOnUpdate() async {
+  final prefs = await SharedPreferences.getInstance();
+  final packageInfo = await PackageInfo.fromPlatform();
+  final currentVersion = packageInfo.version; // e.g. "1.0.1"
+
+  final storedVersion = prefs.getString('appVersion');
+
+  if (storedVersion != currentVersion) {
+    const storage = FlutterSecureStorage();
+    await storage.deleteAll();
+    await prefs.setString('appVersion', currentVersion);
+    debugPrint('Version changed $storedVersion → $currentVersion, storage cleared');
+  }
+}
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();

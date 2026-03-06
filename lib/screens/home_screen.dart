@@ -241,20 +241,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: const Color(0xFF020617),
       body: Stack(
         children: [
 
+          // Positioned.fill(
+          //   child: Container(
+          //     color: const Color(0xFF020617).withOpacity(0.5),
+          //   ),
+          // ),
+
         Positioned.fill(
-          child: Opacity(
-           opacity: 0.3,
-            child: Lottie.asset(
-             'assets/Gradient Dots Background.json',
-              fit: BoxFit.cover,
-              repeat: true,
-            ),
-           ),
+          child: Image.asset(
+            'assets/lock_back.png',
+            fit: BoxFit.cover,
+          ),
         ),
+          // Dark overlay
+
 
        SafeArea(
             // Main content
@@ -311,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const Text(
                           "Welcome Back",
                           style: TextStyle(
-                            color: Color(0xFF1A1A2E),
+                            color: Colors.white,
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
                           ),
@@ -320,7 +324,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           "Sign in to continue",
                           style: TextStyle(
-                            color: const Color(0xFF1A1A2E).withOpacity(0.45),
+                            color: Colors.white.withOpacity(0.45),
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
                           ),
@@ -336,17 +340,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.white.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(24),
+                                color: const Color(0xFF1A1F2E).withOpacity(0.6),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.black.withOpacity(0.1),
                                   width: 1.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 10),
                                   ),
                                 ],
                               ),
@@ -355,29 +359,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                   // Username field
                                   TextFormField(
                                     controller: _usernameController,
-                                    style: const TextStyle(color: Color(0xFF1A1A2E)),
+                                    style: const TextStyle(color: Colors.white),
                                     decoration: InputDecoration(
                                       prefixIcon: Icon(
                                         Icons.person_outline,
-                                        color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                                        color: Colors.white.withOpacity(0.5),
                                       ),
                                       hintText: 'Username',
-                                      hintStyle: TextStyle(
-                                        color: const Color(0xFF1A1A2E).withOpacity(0.35),
-                                      ),
+                                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
                                       filled: true,
-                                      fillColor: Colors.white.withOpacity(0.6),
+                                      fillColor: const Color(0xFF252B3B),
                                       enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.black.withOpacity(0.1),
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                        borderRadius: BorderRadius.circular(14),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.black.withOpacity(0.2),
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+                                        borderRadius: BorderRadius.circular(14),
                                       ),
                                     ),
                                   ),
@@ -387,29 +385,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: true,
-                                    style: const TextStyle(color: Color(0xFF1A1A2E)),
+                                    style: const TextStyle(color: Colors.white),
                                     decoration: InputDecoration(
                                       prefixIcon: Icon(
                                         Icons.lock_outline,
-                                        color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                                        color: Colors.white.withOpacity(0.5),
                                       ),
                                       hintText: 'Password',
-                                      hintStyle: TextStyle(
-                                        color: const Color(0xFF1A1A2E).withOpacity(0.35),
-                                      ),
+                                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
                                       filled: true,
-                                      fillColor: Colors.white.withOpacity(0.6),
+                                      fillColor: const Color(0xFF252B3B),
                                       enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.black.withOpacity(0.1),
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                        borderRadius: BorderRadius.circular(14),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Colors.black.withOpacity(0.2),
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+                                        borderRadius: BorderRadius.circular(14),
                                       ),
                                     ),
                                   ),
@@ -425,13 +417,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                         foregroundColor: Colors.white,
                                         padding: const EdgeInsets.symmetric(vertical: 16),
                                         elevation: 0,
-                                        shadowColor: const Color(0xFF2E9E5B).withOpacity(0.3),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(14),
                                         ),
                                       ),
                                       child: state is AuthLoading
-                                          ? const CircularProgressIndicator(color:  Color(0xFF2E9E5B))
+                                          ? const CircularProgressIndicator(color: Color(0xFF2E9E5B))
                                           : const Text(
                                         'Sign In',
                                         style: TextStyle(
