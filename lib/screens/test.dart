@@ -115,7 +115,7 @@ class _TestState extends State<Test> {
               rollNumber = state.profile.rollNumber ?? "";
             }
 
-            return _buildDrawer(context, rollNumber);
+            return _buildDrawer(context, rollNumber,context.read<AuthBloc>());
           },
         ),
         body: BlocBuilder<ProfileBloc, ProfileState>(
@@ -955,7 +955,7 @@ Widget _statBox(String value, String label, Color valueColor, Color bgColor) {
   );
 }
 
-Drawer _buildDrawer(BuildContext context, String rollNumber) {
+Drawer _buildDrawer(BuildContext context, String rollNumber,AuthBloc authBloc) {
   return Drawer(
     backgroundColor: Colors.transparent,
     child: ClipRRect(
@@ -1016,6 +1016,7 @@ Drawer _buildDrawer(BuildContext context, String rollNumber) {
                       )..add(FetchProfile()),
                       child: ProfileScreen(
                         attendanceBloc: attendanceBloc,
+                        authBloc: authBloc,
                       ),
                     ),
                   ),
