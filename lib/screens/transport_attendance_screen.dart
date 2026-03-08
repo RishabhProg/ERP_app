@@ -11,10 +11,12 @@ import 'footer.dart';
 
 class MandatoryAttendanceScreen extends StatefulWidget {
   final String admissionNumber;
+  final bool hideBackButton;
 
   const MandatoryAttendanceScreen({
     super.key,
     required this.admissionNumber,
+    this.hideBackButton = false,
   });
 
   @override
@@ -67,12 +69,7 @@ class _MandatoryAttendanceScreenState
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new,
-                            color: Colors.white, size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 20,),
                       const Text(
                         'Technical Training',
                         style: TextStyle(
@@ -102,9 +99,9 @@ class _MandatoryAttendanceScreenState
 
                       if (state is TransportAttendanceLoaded) {
                         final list =
-                        List<TransportAttendanceModel>.from(state.attendance)
-                          ..sort((a, b) =>
-                              b.attendanceDate.compareTo(a.attendanceDate));
+                            List<TransportAttendanceModel>.from(state.attendance)
+                              ..sort((a, b) =>
+                                  b.attendanceDate.compareTo(a.attendanceDate));
 
                         if (list.isEmpty) {
                           return Center(
@@ -128,8 +125,10 @@ class _MandatoryAttendanceScreenState
                         }
 
                         final total = list.length;
-                        final present = list.where((e) => !e.isInAbsent).length;
-                        final percent = total > 0 ? (present / total * 100) : 0.0;
+                        final present =
+                            list.where((e) => !e.isInAbsent).length;
+                        final percent =
+                            total > 0 ? (present / total * 100) : 0.0;
                         final percentStr = percent.toStringAsFixed(1);
                         final isGood = percent >= 80;
 
@@ -155,22 +154,22 @@ class _MandatoryAttendanceScreenState
                                         padding: const EdgeInsets.all(20),
                                         decoration: BoxDecoration(
                                           borderRadius:
-                                          BorderRadius.circular(20),
+                                              BorderRadius.circular(20),
                                           color: Colors.white.withOpacity(0.07),
                                           border: Border.all(
                                             color:
-                                            Colors.white.withOpacity(0.12),
+                                                Colors.white.withOpacity(0.12),
                                             width: 1.5,
                                           ),
                                         ),
                                         child: Column(
                                           crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                           children: [
                                             // Label row
                                             Row(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                                  MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Text(
                                                   'ATTENDANCE OVERVIEW',
@@ -195,19 +194,19 @@ class _MandatoryAttendanceScreenState
                                               children: [
                                                 Column(
                                                   crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       '$percentStr%',
                                                       style: TextStyle(
                                                         fontSize: 42,
                                                         fontWeight:
-                                                        FontWeight.w700,
+                                                            FontWeight.w700,
                                                         color: isGood
                                                             ? const Color(
-                                                            0xFF2E9E5B)
+                                                                0xFF2E9E5B)
                                                             : const Color(
-                                                            0xFFE53935),
+                                                                0xFFE53935),
                                                       ),
                                                     ),
                                                     Text(
@@ -215,7 +214,7 @@ class _MandatoryAttendanceScreenState
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                         fontWeight:
-                                                        FontWeight.w500,
+                                                            FontWeight.w500,
                                                         color: Colors.white
                                                             .withOpacity(0.45),
                                                       ),
@@ -257,7 +256,7 @@ class _MandatoryAttendanceScreenState
                                                             Colors.white,
                                                             Colors.white
                                                                 .withOpacity(
-                                                                0.06),
+                                                                    0.06),
                                                           ),
                                                         ],
                                                       ),
@@ -272,14 +271,14 @@ class _MandatoryAttendanceScreenState
                                             // Bottom hint
                                             Container(
                                               padding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 14,
-                                                  vertical: 10),
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 14,
+                                                      vertical: 10),
                                               decoration: BoxDecoration(
                                                 color: Colors.white
                                                     .withOpacity(0.05),
                                                 borderRadius:
-                                                BorderRadius.circular(12),
+                                                    BorderRadius.circular(12),
                                                 border: Border.all(
                                                     color: Colors.white
                                                         .withOpacity(0.08)),
@@ -290,12 +289,12 @@ class _MandatoryAttendanceScreenState
                                                     isGood
                                                         ? Icons.verified_outlined
                                                         : Icons
-                                                        .warning_amber_rounded,
+                                                            .warning_amber_rounded,
                                                     color: isGood
                                                         ? const Color(
-                                                        0xFF2E9E5B)
+                                                            0xFF2E9E5B)
                                                         : const Color(
-                                                        0xFFE53935),
+                                                            0xFFE53935),
                                                     size: 16,
                                                   ),
                                                   const SizedBox(width: 10),
@@ -307,12 +306,12 @@ class _MandatoryAttendanceScreenState
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                         fontWeight:
-                                                        FontWeight.w500,
+                                                            FontWeight.w500,
                                                         color: isGood
                                                             ? const Color(
-                                                            0xFF2E9E5B)
+                                                                0xFF2E9E5B)
                                                             : const Color(
-                                                            0xFFE53935),
+                                                                0xFFE53935),
                                                       ),
                                                     ),
                                                   ),
@@ -329,11 +328,11 @@ class _MandatoryAttendanceScreenState
 
                               // Attendance list
                               SliverPadding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.only(
+                                    left: 16, right: 16, top: 8, bottom: 20),
                                 sliver: SliverList(
                                   delegate: SliverChildBuilderDelegate(
-                                        (context, index) => _attendanceCard(
+                                    (context, index) => _attendanceCard(
                                       date: DateFormat('dd MMM yyyy')
                                           .format(list[index].attendanceDate),
                                       isAbsent: list[index].isInAbsent,
@@ -345,7 +344,12 @@ class _MandatoryAttendanceScreenState
 
                               // Footer
                               const SliverToBoxAdapter(
-                                child: AppFooter(),
+                                child: Column(
+                                  children: [
+                                    AppFooter(),
+                                    SizedBox(height: 100),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -426,8 +430,7 @@ class _MandatoryAttendanceScreenState
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child:
-              const Text('Retry', style: TextStyle(color: Colors.white)),
+              child: const Text('Retry', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -442,49 +445,43 @@ class _MandatoryAttendanceScreenState
     final statusColor =
     isAbsent ? const Color(0xFFE53935) : const Color(0xFF2E9E5B);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-              width: 1.2,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              date,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  date,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: statusColor.withOpacity(0.12),
-                ),
-                child: Icon(
-                  isAbsent ? Icons.close_rounded : Icons.check_rounded,
-                  color: statusColor,
-                  size: 20,
-                ),
-              ),
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: statusColor.withOpacity(0.12),
+            ),
+            child: Icon(
+              isAbsent ? Icons.close_rounded : Icons.check_rounded,
+              color: statusColor,
+              size: 20,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

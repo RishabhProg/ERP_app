@@ -65,11 +65,11 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/graduation-hat.png"
+  image_path: "assets/icon.png"
   min_sdk_android: 21
   remove_alpha_ios: true
   adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: "assets/graduation-hat.png"    
+  adaptive_icon_foreground: "assets/icon.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -99,6 +99,7 @@ flutter:
     - assets/line loader.json
     - assets/Loading.json
     - assets/lock_back.png
+    - assets/icon.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

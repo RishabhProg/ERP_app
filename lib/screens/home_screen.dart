@@ -194,6 +194,7 @@ import 'package:erp_app/bloc/auth_bloc/auth_event.dart';
 import 'package:erp_app/bloc/auth_bloc/auth_state.dart';
 import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
 import 'package:erp_app/bloc/profile_bloc/profile_event.dart';
+import 'package:erp_app/main_shell.dart';
 import 'package:erp_app/models/login_response.dart';
 import 'package:erp_app/repository/profile_repository.dart';
 import 'package:erp_app/screens/test.dart';
@@ -291,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               profileRepository: ProfileRepository(),
                               loginResponse: loginResponse,
                             )..add(FetchProfile()),
-                            child: const Test(),
+                            child: const MainShell(),
                           ),
                         ),
                       );

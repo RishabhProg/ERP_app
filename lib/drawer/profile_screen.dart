@@ -6,6 +6,7 @@ import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/auth_bloc/auth_event.dart';
 import '../bloc/auth_bloc/auth_state.dart';
 import '../bloc/final_attendance_Bloc/final_attendance_bloc.dart';
+import '../bloc/final_attendance_Bloc/final_attendance_event.dart';
 import '../bloc/final_attendance_Bloc/final_attendance_state.dart';
 import '../bloc/profile_bloc/profile_bloc.dart';
 import '../bloc/profile_bloc/profile_event.dart';
@@ -62,44 +63,38 @@ class ProfileScreen extends StatelessWidget {
   Widget _sectionCard(String title, IconData icon, List<Widget> children) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.white.withOpacity(0.07),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.12),
-                width: 1.5,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.white.withOpacity(0.07),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.12),
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Icon(icon, color: const Color(0xFF7B6FF0), size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                Icon(icon, color: const Color(0xFF7B6FF0), size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Divider(color: Colors.white.withOpacity(0.1)),
-                const SizedBox(height: 4),
-                ...children,
               ],
             ),
-          ),
+            const SizedBox(height: 8),
+            Divider(color: Colors.white.withOpacity(0.1)),
+            const SizedBox(height: 4),
+            ...children,
+          ],
         ),
       ),
     );
@@ -196,17 +191,10 @@ class ProfileScreen extends StatelessWidget {
                         children: [
                           // Header — back button + title only
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
+                            padding: const EdgeInsets.all(16),
                             child: Row(
                               children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.arrow_back_ios_new,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
+                                const SizedBox(width: 20),
                                 const Text(
                                   'Profile',
                                   style: TextStyle(
@@ -369,31 +357,34 @@ class ProfileScreen extends StatelessWidget {
 
                           // Academic Details
                           BlocBuilder<AttendanceBloc, AttendanceState>(
-                            bloc: attendanceBloc,
+                            // Remove: bloc: attendanceBloc,
                             builder: (context, attendanceState) {
+                              // If still loading after a while, trigger a fetch
                               if (attendanceState.isLoading) {
                                 return const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 16),
                                   child: Center(
-                                    child: CircularProgressIndicator(
-                                        color: Color(0xFF2E9E5B)),
+                                    child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
                                   ),
                                 );
                               }
 
-                              final courseName =
-                              attendanceState.semesters.isNotEmpty
-                                  ? attendanceState
-                                  .semesters.first.courseName
-                                  : '-';
-                              final batchName =
-                              attendanceState.semesters.isNotEmpty
-                                  ? attendanceState
-                                  .semesters.first.batchName
-                                  : '-';
-                              final currentSemester = attendanceState
-                                  .selectedSemesterId
-                                  .toString();
+                              // If semesters are empty but not loading, it never fetched — trigger it
+                              if (attendanceState.semesters.isEmpty) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  context.read<AttendanceBloc>().add(LoadSemestersAndAttendance());
+                                });
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
+                                  ),
+                                );
+                              }
+
+                              final courseName = attendanceState.semesters.first.courseName;
+                              final batchName = attendanceState.semesters.first.batchName;
+                              final currentSemester = attendanceState.selectedSemesterId.toString();
 
                               return _sectionCard(
                                 "Academic Details",
@@ -401,8 +392,7 @@ class ProfileScreen extends StatelessWidget {
                                 [
                                   _infoRow("Course", courseName),
                                   _infoRow("Batch", batchName),
-                                  _infoRow("Semester",
-                                      'Semester $currentSemester'),
+                                  _infoRow("Semester", 'Semester $currentSemester'),
                                 ],
                               );
                             },
@@ -426,28 +416,34 @@ class ProfileScreen extends StatelessWidget {
                             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                             child: GestureDetector(
                               onTap: () => _showLogoutDialog(context),
-                              child: Container(
-                                width: double.infinity,
-                                padding:
-                                const EdgeInsets.symmetric(vertical: 16),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(14),
-                                  color: const Color(0xFFB71C1C)
-                                      .withOpacity(0.35),
-                                  border: Border.all(
-                                    color: const Color(0xFFFF6B6B)
-                                        .withOpacity(0.3),
-                                    width: 1.2,
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Sign Out',
-                                    style: TextStyle(
-                                      color: Color(0xFFFF6B6B),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(14),
+                                      color: const Color(0xFFB71C1C)
+                                          .withOpacity(0.35),
+                                      border: Border.all(
+                                        color: const Color(0xFFFF6B6B)
+                                            .withOpacity(0.3),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        'Sign Out',
+                                        style: TextStyle(
+                                          color: Color(0xFFFF6B6B),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -455,7 +451,9 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
 
+                          const SizedBox(height: 20),
                           const AppFooter(),
+                          const SizedBox(height: 100),
                         ],
                       ),
                     );

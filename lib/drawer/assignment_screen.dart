@@ -13,13 +13,18 @@ class AssignmentScreen extends StatelessWidget {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Opacity(
-              opacity: 0.3,
-              child: Lottie.asset(
-                'assets/night.json',
-                frameRate: FrameRate(30),
-                fit: BoxFit.cover,
-                repeat: true,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF141840),
+                    Color(0xFF020617),
+                    Color(0xFF1C1736),
+                  ],
+                  stops: [0.0, 0.5, 1.0],
+                ),
               ),
             ),
           ),
@@ -30,18 +35,13 @@ class AssignmentScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new,
-                            color: Color(0xFF1A1A2E), size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 20),
                       const Text(
                         'Assignments',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1A2E),
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -53,7 +53,7 @@ class AssignmentScreen extends StatelessWidget {
                 Icon(
                   Icons.assignment_outlined,
                   size: 64,
-                  color: const Color(0xFF1A1A2E),
+                  color:  Colors.white,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -61,7 +61,7 @@ class AssignmentScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1A2E),
+                    color: Colors.white70,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -69,12 +69,13 @@ class AssignmentScreen extends StatelessWidget {
                   'Enjoy the free time 🎉',
                   style: TextStyle(
                     fontSize: 14,
-                    color: const Color(0xFF1A1A2E),
+                    color: Colors.white70,
                   ),
                 ),
 
                 const Spacer(flex: 10),
                 const AppFooter(),
+                const SizedBox(height: 100,)
               ],
             ),
           ),
