@@ -1,4 +1,4 @@
-package com.example.erp_app
+package app.bdcoe.upmark
 
 import io.flutter.embedding.android.FlutterActivity
 

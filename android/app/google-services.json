@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:384641051293:android:3c4441f6431f6995f9c274",
+        "android_client_info": {
+          "package_name": "app.bdcoe.upmark"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPj466ewtdABJYJ-2NmVr2rWdViIQadjc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:384641051293:android:196fcfa885aa0109f9c274",
         "android_client_info": {
           "package_name": "com.example.erp_app"
