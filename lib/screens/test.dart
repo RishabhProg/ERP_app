@@ -2,6 +2,7 @@ import 'package:circlify/circlify.dart';
 import 'package:circlify/circlify_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -118,7 +119,17 @@ class _TestState extends State<Test> {
                 double percentAsDouble = total > 0 ? (present / total * 100) : 0.0;
                 String percent = percentAsDouble.toStringAsFixed(2);
 
-                int allowedMisses = ((present / 0.75).ceil() - total)
+                //homescreen widget
+                HomeWidget.saveWidgetData<String>('percent', percent);
+                HomeWidget.saveWidgetData<int>('present', present);
+                HomeWidget.saveWidgetData<int>('total', total);
+                HomeWidget.updateWidget(
+                  name: 'HomeScreenWidgetProvider',
+                  androidName: 'HomeScreenWidgetProvider'
+                );
+
+
+                int allowedMisses = ((present / 0.75).floor() - total)
                     .clamp(0, double.infinity)
                     .toInt();
 

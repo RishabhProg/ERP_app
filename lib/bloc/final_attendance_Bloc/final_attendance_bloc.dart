@@ -4,6 +4,7 @@ import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_event.dart';
 import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_state.dart';
 import 'package:erp_app/repository/final_attendance_repo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import "package:home_widget/home_widget.dart";
 
 class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   final AttendanceRepository repository;
@@ -57,5 +58,15 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         errorMessage: e.toString(),
       ));
     }
+  }
+
+  void updateAndroidWidget() async{
+    await HomeWidget.saveWidgetData<String>('title', 'Attendance');
+    await HomeWidget.saveWidgetData('status', '85% present');
+
+    await HomeWidget.updateWidget(
+      name: 'HomeScreenWidgetProvider',
+      androidName: 'HomeScreenWidgetProvider'
+    );
   }
 }
