@@ -104,6 +104,23 @@ class _TestState extends State<Test> {
                     state.errorMessage!.contains('Session expired')) {
                   _clearAndRedirect(context);
                 }
+
+                if (!state.isLoading && state.errorMessage == null) {
+                  final total = state.attendance.length;
+                  final present = state.attendance.where((e) => !e.isAbsent).length;
+                  final percentAsDouble = total > 0 ? (present / total * 100) : 0.0;
+                  final percent = percentAsDouble.toStringAsFixed(2);
+
+                  HomeWidget.saveWidgetData<String>('percent', percent);
+                  HomeWidget.saveWidgetData<int>('present', present);
+                  HomeWidget.saveWidgetData<int>('total', total);
+                  HomeWidget.updateWidget(
+                      name: 'HomeScreenWidgetProvider',
+                      androidName: 'HomeScreenWidgetProvider');
+                  HomeWidget.updateWidget(
+                      name: 'HomeScreenWidgetAltProvider',
+                      androidName: 'HomeScreenWidgetAltProvider');
+                }
               },
               builder: (context, state) {
                 final bloc = context.read<AttendanceBloc>();
@@ -119,14 +136,20 @@ class _TestState extends State<Test> {
                 double percentAsDouble = total > 0 ? (present / total * 100) : 0.0;
                 String percent = percentAsDouble.toStringAsFixed(2);
 
-                //homescreen widget
-                HomeWidget.saveWidgetData<String>('percent', percent);
-                HomeWidget.saveWidgetData<int>('present', present);
-                HomeWidget.saveWidgetData<int>('total', total);
-                HomeWidget.updateWidget(
-                  name: 'HomeScreenWidgetProvider',
-                  androidName: 'HomeScreenWidgetProvider'
-                );
+                // //homescreen widget
+                // HomeWidget.saveWidgetData<String>('percent', percent);
+                // HomeWidget.saveWidgetData<int>('present', present);
+                // HomeWidget.saveWidgetData<int>('total', total);
+                // //widget1
+                // HomeWidget.updateWidget(
+                //   name: 'HomeScreenWidgetProvider',
+                //   androidName: 'HomeScreenWidgetProvider'
+                // );
+                // //widget2
+                // HomeWidget.updateWidget(
+                //     name: 'HomeScreenWidgetAltProvider',
+                //     androidName: 'HomeScreenWidgetAltProvider'
+                // );
 
 
                 int allowedMisses = ((present / 0.75).floor() - total)

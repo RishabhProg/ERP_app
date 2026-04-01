@@ -2,6 +2,6 @@
 <!-- res/drawable/stat_box_white.xml -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#0FFFFFFF" />
+    <solid android:color="#33FFFFFF" />
     <corners android:radius="10dp" />
 </shape>

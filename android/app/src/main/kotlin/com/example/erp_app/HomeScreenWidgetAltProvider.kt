@@ -2,7 +2,6 @@ package app.bdcoe.upmark
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
 import android.widget.RemoteViews
@@ -10,8 +9,9 @@ import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 import kotlin.math.max
 import android.app.PendingIntent
+import android.content.Intent
 
-class HomeScreenWidgetProvider : HomeWidgetProvider() {
+class HomeScreenWidgetAltProvider : HomeWidgetProvider() {
 
     override fun onUpdate(
         context: Context,
@@ -27,9 +27,9 @@ class HomeScreenWidgetProvider : HomeWidgetProvider() {
                 val absent = total - present
                 val percentDouble = percent.toDoubleOrNull() ?: 0.0
 
-                Log.d("HomeScreenWidget", "percent=$percent present=$present total=$total")
+                Log.d("HomeScreenWidgetAlt", "percent=$percent present=$present total=$total")
 
-                val views = RemoteViews(context.packageName, R.layout.widget_layout)
+                val views = RemoteViews(context.packageName, R.layout.widget_layout_alt)
 
                 views.setTextViewText(R.id.widget_percent, "$percent%")
                 views.setProgressBar(R.id.widget_progress_ring, 100, percentDouble.toInt(), false)
@@ -67,10 +67,10 @@ class HomeScreenWidgetProvider : HomeWidgetProvider() {
                 views.setOnClickPendingIntent(R.id.widget_refresh_btn, refreshIntent)
 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
-                Log.d("HomeScreenWidget", "Widget updated successfully")
+                Log.d("HomeScreenWidgetAlt", "Widget updated successfully")
 
             } catch (e: Exception) {
-                Log.e("HomeScreenWidget", "Widget crash: ${e.message}", e)
+                Log.e("HomeScreenWidgetAlt", "Widget crash: ${e.message}", e)
             }
         }
     }

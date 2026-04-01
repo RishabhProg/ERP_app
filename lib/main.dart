@@ -8,6 +8,7 @@ import 'package:erp_app/repository/attendance_repo.dart';
 import 'package:erp_app/repository/final_attendance_repo.dart';
 import 'package:erp_app/screens/attendance_info.dart';
 import 'package:erp_app/screens/splash_screen.dart';
+import 'package:erp_app/widget_background_callback.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,7 @@ import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:home_widget/home_widget.dart';
 
 Future<void> clearOnUpdate() async {
   final prefs = await SharedPreferences.getInstance();
@@ -35,6 +37,7 @@ Future<void> clearOnUpdate() async {
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  HomeWidget.registerBackgroundCallback(widgetBackgroundCallback);
   await Firebase.initializeApp();
   runApp(MyApp());
 }

@@ -12,7 +12,7 @@ class AuthRepository {
         url,
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'grant_type=password&username=$username&password=$password',
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);

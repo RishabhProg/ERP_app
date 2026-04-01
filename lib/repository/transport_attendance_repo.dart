@@ -28,7 +28,7 @@ class TransportAttendanceRepo {
             "?admissionNumber=$studentNumber&type=11",
       ),
       headers: headers,
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);

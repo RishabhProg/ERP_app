@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-android:insetLeft="2dp"
-android:insetTop="2dp"
-android:insetRight="2dp"
-android:insetBottom="2dp">
+android:insetLeft="1dp"
+android:insetTop="1dp"
+android:insetRight="1dp"
+android:insetBottom="1dp">
 <shape android:shape="rectangle">
-    <solid android:color="#0DFFFFFF" />
+    <gradient
+        android:startColor="#33FFFFFF"
+        android:endColor="#1AFFFFFF"
+        android:angle="135" />
+
     <stroke
-        android:width="1.5dp"
-        android:color="#1AFFFFFF" />
-    <corners android:radius="20dp" />
+        android:width="1.2dp"
+        android:color="#4DFFFFFF" />
+    <corners android:radius="24dp" />
 </shape>
 </inset>

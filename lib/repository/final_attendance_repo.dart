@@ -40,7 +40,7 @@ class AttendanceRepository {
         Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance?userFromClient=0&userId=$userId'),
         headers: headers,
       )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 401) {
         throw ('Session expired. Please login again');
@@ -93,7 +93,7 @@ class AttendanceRepository {
         Uri.parse('https://erp.akgec.ac.in/api/SubjectAttendance/GetPresentAbsentStudent?isDateWise=false&termId=0&userId=$userId&y=0'),
         headers: headers,
       )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 401) {
         throw ('Session expired. Please login again');
