@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:lottie/lottie.dart';
 
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/profile_bloc/profile_bloc.dart';
@@ -19,6 +20,12 @@ import '../repository/profile_repository.dart';
 import '../repository/transport_attendance_repo.dart';
 import '../screens/transport_attendance_screen.dart';
 import '../screens/test.dart';
+import 'customizer/app_backgrounds.dart';
+import 'customizer/background_config.dart';
+import 'customizer/background_manager.dart';
+import 'customizer/background_selector_screen.dart';
+import 'customizer/background_storage.dart';
+
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -32,6 +39,9 @@ class _MainShellState extends State<MainShell> {
   LoginResponse? _loginResponse;
   String _rollNumber = '';
   ProfileBloc? _profileBloc;
+  int _bgIndex = 0;
+  bool _bgLoaded = false;
+
 
   // AttendanceBloc lives here — shared by Test and ProfileScreen
   late final AttendanceBloc _attendanceBloc;
@@ -42,6 +52,15 @@ class _MainShellState extends State<MainShell> {
     _attendanceBloc = AttendanceBloc(AttendanceRepository())
       ..add(LoadSemestersAndAttendance());
     _loadCredentials();
+    _loadBackground();
+  }
+
+  Future<void> _loadBackground() async {
+    final index = await BackgroundStorage.loadIndex();
+    setState(() {
+      _bgIndex = index;
+      _bgLoaded = true;
+    });
   }
 
   Future<void> _loadCredentials() async {
@@ -84,25 +103,16 @@ class _MainShellState extends State<MainShell> {
 
   Widget _bg(Widget child) => Material(
     color: Colors.transparent,
-    child: Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF141840), Color(0xFF020617), Color(0xFF1C1736)],
-          stops: [0.0, 0.5, 1.0],
-        ),
-      ),
-      child: child,
-    ),
+    child: child,
+
   );
 
   List<Widget> _buildScreens(AuthBloc authBloc) {
     return [
       // 0 — Dashboard — gets AttendanceBloc from shell via context
-      const Test(),
+      Test(
+        onBackgroundSelected: (index) => setState(() => _bgIndex = index),
+      ),
 
       // 1 — E-Identity
       const EIdentityScreen(),
@@ -191,13 +201,25 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
+  void _openBackgroundSelector() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BackgroundSelectorScreen(
+          // ← live callback: no reload needed on pop
+          onSelected: (index) => setState(() => _bgIndex = index),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authBloc = context.read<AuthBloc>();
 
     if (_profileBloc == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF020617),
+        backgroundColor: Colors.transparent,
         body: _bg(
           const Center(
             child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
@@ -225,9 +247,20 @@ class _MainShellState extends State<MainShell> {
         },
         child: Scaffold(
           backgroundColor: const Color(0xFF020617),
-          body: IndexedStack(
-            index: _selectedIndex,
-            children: _buildScreens(authBloc),
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: BackgroundManager(
+                  config: AppBackgrounds.all[_bgIndex],
+                  child: const SizedBox.expand(),
+                ),
+              ),
+
+              IndexedStack(
+                index: _selectedIndex,
+                children: _buildScreens(authBloc),
+              ),
+            ]
           ),
           floatingActionButton: _buildBottomNav(),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

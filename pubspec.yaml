@@ -90,6 +90,9 @@ flutter:
     - assets/animation.json
     - assets/loginback.json
     - assets/night.json
+    - assets/train.json
+    - assets/valley.json
+    - assets/planet.json
     - assets/centerimage2.jpeg
     - assets/animation2.json
     - assets/back1.json

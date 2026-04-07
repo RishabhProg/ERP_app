@@ -1,5 +1,6 @@
 class UserProfile {
   final String fullName;
+  final String firstName;
   final String contactNumber;
   final String rollNumber;
   final String semester;
@@ -13,6 +14,7 @@ class UserProfile {
 
   UserProfile({
     required this.fullName,
+    required this.firstName,
     required this.contactNumber,
     required this.rollNumber,
     required this.semester,
@@ -34,6 +36,7 @@ class UserProfile {
           json['lastName'],
         ].where((part) => part != null && part.toString().isNotEmpty)
             .join(' '),
+        firstName: json['firstName']?.toString()??'',
         contactNumber: json['smsMobileNumber']?.toString() ?? '',
         rollNumber: json['rollNumber']?.toString() ?? '',
         semester: json['semester']?.toString() ?? '',

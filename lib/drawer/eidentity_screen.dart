@@ -34,26 +34,10 @@ class _EIdentityScreenState extends State<EIdentityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          // Dark gradient background
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF141840),
-                    Color(0xFF020617),
-                    Color(0xFF1C1736),
-                  ],
-                  stops: [0.0, 0.5, 1.0],
-                ),
-              ),
-            ),
-          ),
-
           SafeArea(
             child: Column(
               children: [
