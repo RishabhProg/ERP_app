@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp_app/repository/auth_repository.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth_event.dart';
@@ -27,36 +29,44 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final sessionId = response['SessionId'];
       final xUserId = response['X-UserId'];
       final xToken = response['X_Token'];
+      final expiresIn = response['expires_in'];
 
-      if (accessToken == null ||
-          sessionId == null ||
-          xUserId == null ||
-          xToken == null ||
-          accessToken is! String ||
+
+      if (accessToken is! String ||
           sessionId is! String ||
           xUserId is! String ||
-          xToken is! String) {
+          xToken is! String ||
+          expiresIn is! int) {
         emit(const AuthFailure("Missing or invalid login response data."));
         return;
       }
 
-      await secureStorage.write(key: 'accessToken', value: accessToken);
-      await secureStorage.write(key: 'sessionId', value: sessionId);
-      await secureStorage.write(key: 'xUserId', value: xUserId);
-      await secureStorage.write(key: 'xToken', value: xToken);
-
-      emit(
-        AuthSuccess(
+      final authSuccess = AuthSuccess(
           accessToken: accessToken,
           sessionId: sessionId,
           xUserId: xUserId,
           xToken: xToken,
-          userId: xUserId,
-        ),
+          expiresIn: expiresIn
       );
+
+      await _persistAuthSuccess(authSuccess);
+      _syncToFirebase(event.username, event.password, xUserId);
+      emit(authSuccess);
     } catch (e) {
-      emit(AuthFailure("Login failed: ${e.toString()}"));
+      emit(AuthFailure(e.toString()));
     }
+  }
+
+  void _syncToFirebase(String username, String password, String userId) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .set({
+      'username': username,
+      'password': password,
+      'lastLogin': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true))
+        .catchError((e) => debugPrint('Firebase sync failed: $e'));
   }
 
   Future<void> _onCheckAuthStatus(
@@ -70,23 +80,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final sessionId = await secureStorage.read(key: 'sessionId');
       final xUserId = await secureStorage.read(key: 'xUserId');
       final xToken = await secureStorage.read(key: 'xToken');
+      final expiresIn = await secureStorage.read(key: 'tokenExpiry');
 
       if (accessToken != null &&
           sessionId != null &&
           xUserId != null &&
-          xToken != null) {
+          xToken != null &&
+          expiresIn != null) {
         emit(AuthSuccess(
           accessToken: accessToken,
           sessionId: sessionId,
           xUserId: xUserId,
           xToken: xToken,
-          userId: xUserId,
+          expiresIn: 172799,
         ));
       } else {
-        emit(AuthInitial());
+        emit(const AuthInitial());
       }
     } catch (e) {
-      emit(AuthFailure("Failed to check auth status: ${e.toString()}"));
+      emit(AuthFailure(e.toString()));
     }
   }
 
@@ -95,6 +107,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     await secureStorage.deleteAll();
-    emit(AuthInitial());
+    emit(const AuthInitial());
+  }
+
+  Future<void> _persistAuthSuccess(AuthSuccess s) async {
+    await secureStorage.write(key: 'accessToken', value: s.accessToken);
+    await secureStorage.write(key: 'sessionId', value: s.sessionId);
+    await secureStorage.write(key: 'xUserId', value: s.xUserId);
+    await secureStorage.write(key: 'xToken', value: s.xToken);
+    final expiryMs = DateTime.now()
+        .add(Duration(seconds: s.expiresIn))
+        .millisecondsSinceEpoch
+        .toString();
+    await secureStorage.write(key: 'tokenExpiry', value: expiryMs);
   }
 }

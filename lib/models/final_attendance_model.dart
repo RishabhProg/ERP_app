@@ -10,10 +10,14 @@ class AttendanceEntry {
   });
 
   factory AttendanceEntry.fromJson(Map<String, dynamic> json) {
-    return AttendanceEntry(
-      subjectName: json['subjectName'] ?? 'Unknown Subject',
-      isAbsent: json['isAbsent'] == true,
-      absentDate: json['absentDate'],
-    );
+    try {
+      return AttendanceEntry(
+        subjectName: json['subjectName']?.toString() ?? 'Unknown Subject',
+        isAbsent: json['isAbsent'] == true,
+        absentDate: json['absentDate']?.toString(),
+      );
+    } catch (e) {
+      throw 'Failed to read attendance data. Please try again';
+    }
   }
 }

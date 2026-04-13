@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LayerDrawable used as ProgressBar drawable -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Track -->
+    <item android:id="@android:id/background">
+        <shape
+            android:shape="ring"
+            android:innerRadiusRatio="2.8"
+            android:thicknessRatio="12"
+            android:useLevel="false">
+            <solid android:color="#1AFFFFFF" />
+        </shape>
+    </item>
+    <!-- Progress -->
+    <item android:id="@android:id/progress">
+        <shape
+            android:shape="ring"
+            android:innerRadiusRatio="2.8"
+            android:thicknessRatio="12"
+            android:useLevel="true">
+            <solid android:color="#7B6FF0" />
+        </shape>
+    </item>
+</layer-list>

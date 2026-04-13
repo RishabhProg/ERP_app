@@ -7,28 +7,44 @@ abstract class AuthState extends Equatable {
   List<Object?> get props => [];
 }
 
-class AuthInitial extends AuthState {}
+class AuthInitial extends AuthState {
+  const AuthInitial();
+}
 
-class AuthLoading extends AuthState {}
+class AuthLoading extends AuthState {
+  const AuthLoading();
+}
 
 class AuthSuccess extends AuthState {
   final String accessToken;
   final String sessionId;
   final String xUserId;
   final String xToken;
-  final String userId;
+  final int expiresIn;
 
   const AuthSuccess({
     required this.accessToken,
     required this.sessionId,
     required this.xUserId,
     required this.xToken,
-    required this.userId,
+    this.expiresIn = 172799
   });
-  
 
+  AuthSuccess copyWith({
+    String? accessToken,
+    String? sessionId,
+    String? xUserId,
+    String? xToken,
+}) {
+    return AuthSuccess(
+        accessToken: accessToken ?? this.accessToken,
+        sessionId: sessionId ?? this.sessionId,
+        xUserId: xUserId ?? this.xUserId,
+        xToken: xToken ?? this.xToken,
+    );
+  }
   @override
-  List<Object> get props => [accessToken, sessionId, xUserId, xToken, userId];
+  List<Object> get props => [accessToken, sessionId, xUserId, xToken,];
   
 }
 

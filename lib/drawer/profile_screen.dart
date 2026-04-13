@@ -1,195 +1,497 @@
-import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
+import 'dart:ui';
 import 'package:erp_app/bloc/profile_bloc/profile_state.dart';
-import 'package:erp_app/models/profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
+import '../bloc/auth_bloc/auth_bloc.dart';
+import '../bloc/auth_bloc/auth_event.dart';
+import '../bloc/auth_bloc/auth_state.dart';
+import '../bloc/final_attendance_Bloc/final_attendance_bloc.dart';
+import '../bloc/final_attendance_Bloc/final_attendance_event.dart';
+import '../bloc/final_attendance_Bloc/final_attendance_state.dart';
+import '../bloc/profile_bloc/profile_bloc.dart';
+import '../bloc/profile_bloc/profile_event.dart';
+import '../screens/footer.dart';
+import '../screens/home_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final String courseName;
+  final String batchName;
+  final String currentSemester;
+  final AttendanceBloc attendanceBloc;
+  final AuthBloc authBloc;
 
-  Widget _buildProfileItem(String label, String value) {
-    return Card(
-      color: Color(0xFF2C2C2C), // Green card background
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      elevation: 15,
-      child: ListTile(
-        title: Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white, // White text
+  const ProfileScreen({
+    super.key,
+    this.courseName = '',
+    this.batchName = '',
+    this.currentSemester = '',
+    required this.attendanceBloc,
+    required this.authBloc,
+  });
+
+  // Stacked label + value layout matching the design
+  Widget _infoRow(String label, String? value) {
+    final displayValue = (value == null || value.trim().isEmpty) ? "-" : value;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white.withOpacity(0.4),
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            displayValue,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionCard(String title, IconData icon, List<Widget> children) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.white.withOpacity(0.07),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.12),
+            width: 1.5,
           ),
         ),
-        subtitle: Text(
-          value,
-          style: const TextStyle(color: Colors.green), // White text
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: const Color(0xFF7B6FF0), size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Divider(color: Colors.white.withOpacity(0.1)),
+            const SizedBox(height: 4),
+            ...children,
+          ],
         ),
-        leading: const Icon(Icons.person, color: Colors.white), // White icon
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1736),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Sign Out',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Are you sure you want to sign out?',
+          style: TextStyle(color: Colors.white.withOpacity(0.7)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              authBloc.add(LogoutRequested());
+            },
+            child: const Text(
+              'Sign Out',
+              style: TextStyle(
+                color: Color(0xFFFF6B6B),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black, // Whole screen background black
-      appBar: AppBar(
-        backgroundColor: Color(0xFF2C2C2C),
-        centerTitle: true,
-        title: const Text(
-          "Student Profile",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          if (state is ProfileLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ProfileLoaded) {
-            UserProfile profile = state.profile;
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Curved Header
-                  ClipPath(
-                    clipper: CurvedHeaderClipper(),
-                    child: Container(
-                      width: double.infinity,
-                      constraints: const BoxConstraints(
-                        minHeight: 280,
-                        maxHeight: 350,
-                      ),
+    return BlocListener<AuthBloc, AuthState>(
+      bloc: authBloc,
+      listener: (context, state) {
+        if (state is AuthInitial) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+                (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: [
 
-                      child: Stack(
-                        fit: StackFit.expand,
+            SafeArea(
+              child: BlocBuilder<ProfileBloc, ProfileState>(
+                builder: (context, state) {
+                  if (state is ProfileLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                          color: Color(0xFF2E9E5B)),
+                    );
+                  }
+
+                  if (state is ProfileLoaded) {
+                    final profile = state.profile;
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
                         children: [
-                          Lottie.asset(
-                            'assets/back1.json',
-                            fit: BoxFit.cover,
-                            repeat: true,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 20,
-                            ),
-                            color: Colors.black.withOpacity(0.3),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          // Header — back button + title only
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
                               children: [
-                                SizedBox(
-                                  height: 130,
-                                  width: 130,
-                                  child: Stack(
-                                    alignment: Alignment.center,
+                                const SizedBox(width: 20),
+                                const Text(
+                                  'Profile',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Avatar + name card
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: BackdropFilter(
+                                filter:
+                                ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: Colors.white.withOpacity(0.07),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.12),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Row(
                                     children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.black,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: CircleAvatar(
-                                          radius: 50,
-                                          backgroundColor: Colors.green,
-                                          child: const Icon(
-                                            Icons.account_circle,
-                                            size: 80,
-                                            color: Colors.black,
+                                      // Avatar with purple ring + green dot
+                                      Stack(
+                                        children: [
+                                          Container(
+                                            width: 68,
+                                            height: 68,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: const Color(0xFF7B6FF0),
+                                                width: 2.5,
+                                              ),
+                                            ),
+                                            child: Container(
+                                              margin: const EdgeInsets.all(3),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.white
+                                                    .withOpacity(0.08),
+                                              ),
+                                              child: Icon(
+                                                Icons.person,
+                                                size: 34,
+                                                color: Colors.white
+                                                    .withOpacity(0.7),
+                                              ),
+                                            ),
                                           ),
+                                          // Green online dot
+                                          Positioned(
+                                            bottom: 2,
+                                            right: 2,
+                                            child: Container(
+                                              width: 14,
+                                              height: 14,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                const Color(0xFF2E9E5B),
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: const Color(
+                                                      0xFF141840),
+                                                  width: 2,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(width: 16),
+
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              profile.fullName,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              profile.collegeEmail,
+                                              style: TextStyle(
+                                                color: Colors.white
+                                                    .withOpacity(0.45),
+                                                fontSize: 12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            // Active Student badge
+                                            Container(
+                                              padding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 10,
+                                                  vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF7B6FF0)
+                                                    .withOpacity(0.2),
+                                                borderRadius:
+                                                BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: const Color(
+                                                      0xFF7B6FF0)
+                                                      .withOpacity(0.4),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                'ACTIVE STUDENT',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Color(0xFF7B6FF0),
+                                                  letterSpacing: 0.8,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  profile.fullName,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  profile.collegeEmail,
-                                  style: const TextStyle(color: Colors.white70),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
+
+                          // Personal Information
+                          _sectionCard(
+                            "Personal Information",
+                            Icons.person_outline_rounded,
+                            [
+                              _infoRow("Full Name", profile.fullName),
+                              _infoRow("Roll No.", profile.rollNumber),
+                              _infoRow("Date of Birth", profile.dob),
+                              _infoRow("Email Address", profile.collegeEmail),
+                              _infoRow("Contact", profile.contactNumber),
+                            ],
+                          ),
+
+                          // Academic Details
+                          BlocBuilder<AttendanceBloc, AttendanceState>(
+                            // Remove: bloc: attendanceBloc,
+                            builder: (context, attendanceState) {
+                              // If still loading after a while, trigger a fetch
+                              if (attendanceState.isLoading) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
+                                  ),
+                                );
+                              }
+
+                              // If semesters are empty but not loading, it never fetched — trigger it
+                              if (attendanceState.semesters.isEmpty) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  context.read<AttendanceBloc>().add(LoadSemestersAndAttendance());
+                                });
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
+                                  ),
+                                );
+                              }
+
+                              final courseName = attendanceState.semesters.first.courseName;
+                              final batchName = attendanceState.semesters.first.batchName;
+                              final currentSemester = attendanceState.selectedSemesterId.toString();
+
+                              return _sectionCard(
+                                "Academic Details",
+                                Icons.school_outlined,
+                                [
+                                  _infoRow("Course", courseName),
+                                  _infoRow("Batch", batchName),
+                                  _infoRow("Semester", 'Semester $currentSemester'),
+                                ],
+                              );
+                            },
+                          ),
+
+                          // Family Details
+                          _sectionCard(
+                            "Family Details",
+                            Icons.people_outline_rounded,
+                            [
+                              _infoRow("Father's Name", profile.fatherName),
+                              _infoRow("Mother's Name", profile.motherName),
+                              _infoRow("Parent Contact",
+                                  profile.parentMobileNumber),
+                              _infoRow("Address", profile.address),
+                            ],
+                          ),
+
+                          // Sign Out button
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            child: GestureDetector(
+                              onTap: () => _showLogoutDialog(context),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(14),
+                                      color: const Color(0xFFB71C1C)
+                                          .withOpacity(0.35),
+                                      border: Border.all(
+                                        color: const Color(0xFFFF6B6B)
+                                            .withOpacity(0.3),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        'Sign Out',
+                                        style: TextStyle(
+                                          color: Color(0xFFFF6B6B),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+                          const AppFooter(),
+                          const SizedBox(height: 100),
                         ],
                       ),
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    color: Colors.black,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        _buildProfileItem("Roll Number", profile.rollNumber),
-                        _buildProfileItem("Semester", profile.semester),
-                        _buildProfileItem("Section", profile.section),
-                        _buildProfileItem("DOB", profile.dob),
-                        _buildProfileItem(
-                          "Contact Number",
-                          profile.contactNumber,
+                    );
+                  }
+
+                  if (state is ProfileError) {
+                    return Center(
+                      child: Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.wifi_off_rounded,
+                                size: 64,
+                                color: Colors.white.withOpacity(0.2)),
+                            const SizedBox(height: 16),
+                            Text(
+                              state.error,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 15,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => context
+                                  .read<ProfileBloc>()
+                                  .add(FetchProfile()),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2E9E5B),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                    BorderRadius.circular(12)),
+                              ),
+                              child: const Text('Retry',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
                         ),
-                        _buildProfileItem("Address", profile.address),
-                        _buildProfileItem("Father's Name", profile.fatherName),
-                        _buildProfileItem("Mother's Name", profile.motherName),
-                        _buildProfileItem(
-                          "Parent Mobile",
-                          profile.parentMobileNumber,
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ],
+                      ),
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
               ),
-            );
-          } else if (state is ProfileError) {
-            return const Center(
-              child: Text(
-                'Error loading profile',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          }
-          return const Center(
-            child: Text(
-              "Press a button to load profile",
-              style: TextStyle(color: Colors.white),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
-}
-
-class CurvedHeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 40);
-    path.quadraticBezierTo(
-      size.width / 2,
-      size.height,
-      size.width,
-      size.height - 40,
-    );
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

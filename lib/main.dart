@@ -8,38 +8,70 @@ import 'package:erp_app/repository/attendance_repo.dart';
 import 'package:erp_app/repository/final_attendance_repo.dart';
 import 'package:erp_app/screens/attendance_info.dart';
 import 'package:erp_app/screens/splash_screen.dart';
+import 'package:erp_app/widget_background_callback.dart';
+import 'package:erp_app/update_check/update_service.dart';
+import 'package:erp_app/update_check/force_update_dialog.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_app/repository/auth_repository.dart';
 import 'package:erp_app/repository/profile_repository.dart';
-import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:home_widget/home_widget.dart';
 
-void main() {
-  runApp(MyApp());
+// Global navigator key
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> clearOnUpdate() async {
+  final prefs = await SharedPreferences.getInstance();
+  final packageInfo = await PackageInfo.fromPlatform();
+  final currentVersion = packageInfo.version;
+  final storedVersion = prefs.getString('appVersion');
+
+  if (storedVersion != currentVersion) {
+    const storage = FlutterSecureStorage();
+    await storage.deleteAll();
+    await prefs.setString('appVersion', currentVersion);
+    debugPrint('Version changed $storedVersion → $currentVersion, storage cleared');
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  HomeWidget.registerBackgroundCallback(widgetBackgroundCallback);
+  await Firebase.initializeApp();
+  await UpdateService.initialize();
+
+  final updateRequired = await UpdateService.isUpdateRequired();
+  debugPrint("Update required: $updateRequired");
+
+  runApp(MyApp(updateRequired: updateRequired));
 }
 
 class MyApp extends StatelessWidget {
   final AuthRepository authRepository = AuthRepository();
   final ProfileRepository profileRepository = ProfileRepository();
-  //final AttendanceRepo attendanceRepository = AttendanceRepo();
+  final bool updateRequired;
 
-  MyApp({super.key});
+  MyApp({super.key, required this.updateRequired});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(authRepository)..add(CheckAuthStatus()),
+          create: (context) => AuthBloc(authRepository),
         ),
-       
         BlocProvider(create: (_) => AttendanceBloc(AttendanceRepository())),
-        // Add more BLoCs here if needed
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        home: const SplashScreen(),
+        home: updateRequired ? const ForceUpdateScreen() : const SplashScreen(),
       ),
     );
   }
 }
+

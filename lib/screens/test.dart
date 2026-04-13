@@ -1,759 +1,719 @@
 import 'package:circlify/circlify.dart';
 import 'package:circlify/circlify_item.dart';
-import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_bloc.dart';
-import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_event.dart';
-import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_state.dart';
-import 'package:erp_app/models/final_attendance_model.dart';
-import 'package:erp_app/repository/final_attendance_repo.dart';
-import 'package:erp_app/screens/attendance_list.dart';
-import 'package:erp_app/screens/chart.dart';
-import 'package:erp_app/screens/pdp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:intl/intl.dart';
-import 'package:erp_app/bloc/auth_bloc/auth_bloc.dart';
-import 'package:erp_app/bloc/auth_bloc/auth_state.dart';
-import 'package:erp_app/bloc/profile_bloc/profile_bloc.dart';
-import 'package:erp_app/bloc/profile_bloc/profile_event.dart';
-import 'package:erp_app/bloc/profile_bloc/profile_state.dart';
-import 'package:erp_app/drawer/assignment_screen.dart';
-import 'package:erp_app/drawer/calendar_screen.dart';
-import 'package:erp_app/drawer/eidentity_screen.dart';
-import 'package:erp_app/drawer/profile_screen.dart';
-import 'package:erp_app/models/login_response.dart';
-import 'package:erp_app/models/profile_model.dart';
-import 'package:erp_app/repository/profile_repository.dart';
-import 'package:erp_app/screens/home_screen.dart';
-import 'package:erp_app/screens/test.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:ui';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_bloc.dart';
-import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_event.dart';
-import 'package:erp_app/bloc/final_attendance_Bloc/final_attendance_state.dart';
-import 'package:erp_app/screens/dashboard_screen.dart';
-import 'package:erp_app/screens/att_calender.dart';
-import 'package:erp_app/screens/splashwrapper.dart';
-import 'package:lottie/lottie.dart';
-//import '../blocs/attendance_bloc.dart';
+
+import '../bloc/auth_bloc/auth_bloc.dart';
+import '../bloc/profile_bloc/profile_bloc.dart';
+import '../bloc/profile_bloc/profile_event.dart';
+import '../bloc/profile_bloc/profile_state.dart';
+import '../customizer/background_selector_screen.dart';
 import '../models/attendance_model.dart';
-import 'package:fl_chart/fl_chart.dart';
+import '../models/final_attendance_model.dart';
+import '../models/profile_model.dart';
+import '../bloc/final_attendance_Bloc/final_attendance_bloc.dart';
+import '../bloc/final_attendance_Bloc/final_attendance_event.dart';
+import '../bloc/final_attendance_Bloc/final_attendance_state.dart';
+import '../repository/final_attendance_repo.dart';
+import '../screens/home_screen.dart';
+import '../widget_launcher.dart';
+import 'attendance_list.dart';
+import 'footer.dart';
 
+class Test extends StatefulWidget {
 
+  final void Function(int index) onBackgroundSelected;
+  const Test({super.key, required this.onBackgroundSelected});
 
-class Test extends StatelessWidget {
-  const Test({super.key});
+  @override
+  State<Test> createState() => _TestState();
+}
 
+class _TestState extends State<Test> {
   List<Map<String, String>> groupByDate(
-    List<AttendanceEntry> entries,
-    String subjectName,
-  ) {
+      List<AttendanceEntry> entries,
+      String subjectName,
+      ) {
     final formatter = DateFormat('dd MMM yyyy');
     final Map<String, List<String>> dateToStatus = {};
 
     for (var e in entries.where(
-      (e) => e.subjectName == subjectName && e.absentDate != null,
+          (e) => e.subjectName == subjectName && e.absentDate != null,
     )) {
       final date = formatter.format(DateTime.parse(e.absentDate!));
       final status = e.isAbsent ? 'A' : 'P';
       dateToStatus.putIfAbsent(date, () => []).add(status);
     }
 
-    return dateToStatus.entries.map((e) {
-        return {'date': e.key, 'status': e.value.join()};
-      }).toList()
+    return dateToStatus.entries
+        .map((e) => {'date': e.key, 'status': e.value.join()})
+        .toList()
       ..sort(
-        (a, b) =>
+            (a, b) =>
             formatter.parse(b['date']!).compareTo(formatter.parse(a['date']!)),
       );
   }
-  
+
+  Future<void> _clearAndRedirect(BuildContext context) async {
+    const storage = FlutterSecureStorage();
+    await storage.deleteAll();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+    );
+  }
+
+  // Always-dark background wrapper — prevents white flash during loading
+  Widget _bg(Widget child) => Material(
+    color: Colors.transparent,
+    child: Container(
+      width: double.infinity,
+      height: double.infinity,
+      child: child,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;  
-    return BlocProvider(
-      create:
-          (_) =>
-              AttendanceBloc(AttendanceRepository())
-                ..add(LoadSemestersAndAttendance()),
-      child: Scaffold(
-        // appBar: AppBar(
-        //   title: const Text("Dashboard", style: TextStyle(color: Colors.white)),
-        //   backgroundColor: Color(0xFF2C2C2C),
-        //   iconTheme: IconThemeData(color: Colors.white),
-        //   centerTitle: true,
-        // ),
-        backgroundColor: Colors.black26,
-        drawer: _buildDrawer(context),
-        body: BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            if (state is ProfileLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ProfileLoaded) {
-              UserProfile profile = state.profile;
-              return BlocBuilder<AttendanceBloc, AttendanceState>(
-                builder: (context, state) {
-                  final bloc = context.read<AttendanceBloc>();
-                  final grouped = <String, List<AttendanceEntry>>{};
 
-                  for (var entry in state.attendance) {
-                    grouped.putIfAbsent(entry.subjectName, () => []).add(entry);
-                  }
+       return BlocBuilder<ProfileBloc, ProfileState>(
+        builder: (context, profileState) {
+          if (profileState is ProfileLoading) {
+            return _bg(
+              const Center(
+                child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
+              ),
+            );
+          }
 
-                  int total = state.attendance.length;
-                  int present = state.attendance.where((e) => !e.isAbsent).length;
+          if (profileState is ProfileLoaded) {
+            final UserProfile profile = profileState.profile;
 
-                  double percentAsDouble = total > 0 ? (present / total * 100) : 0.0;
-                  String percent = percentAsDouble.toStringAsFixed(2);
+            return BlocConsumer<AttendanceBloc, AttendanceState>(
+              listener: (context, state) {
+                if (state.errorMessage != null &&
+                    state.errorMessage!.contains('Session expired')) {
+                  _clearAndRedirect(context);
+                }
 
-                  int allowedMisses = ((present / 0.75).ceil() - total)
-                      .clamp(0, double.infinity)
-                      .toInt();
+                if (!state.isLoading && state.errorMessage == null) {
+                  final total = state.attendance.length;
+                  final present = state.attendance.where((e) => !e.isAbsent).length;
+                  final percentAsDouble = total > 0 ? (present / total * 100) : 0.0;
+                  final percent = percentAsDouble.toStringAsFixed(2);
 
-                  int requiredPresents = 0;
-                  if (percentAsDouble < 75.0) {
-                    requiredPresents = ((0.75 * total - present) / 0.25).ceil();
-                  }
-                 return SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 16,
-                      ), // prevent overflow on bottom
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          
-                          Column(
-                              children: [
-                                Stack(
-                                  children: [
-                                    // Lottie Background
-                                    ClipRect(
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        height: screenHeight * 0.165,
-                                        child: Lottie.asset(
-                                          'assets/night.json',
-                                          fit: BoxFit.cover,
-                                          alignment: Alignment.center,
+                  HomeWidget.saveWidgetData<String>('percent', percent);
+                  HomeWidget.saveWidgetData<int>('present', present);
+                  HomeWidget.saveWidgetData<int>('total', total);
+                  HomeWidget.updateWidget(
+                      name: 'HomeScreenWidgetProvider',
+                      androidName: 'HomeScreenWidgetProvider');
+                  HomeWidget.updateWidget(
+                      name: 'HomeScreenWidgetAltProvider',
+                      androidName: 'HomeScreenWidgetAltProvider');
+                }
+              },
+              builder: (context, state) {
+                final bloc = context.read<AttendanceBloc>();
+                final grouped = <String, List<AttendanceEntry>>{};
+
+                for (var entry in state.attendance) {
+                  grouped.putIfAbsent(entry.subjectName, () => []).add(entry);
+                }
+
+                int total = state.attendance.length;
+                int present = state.attendance.where((e) => !e.isAbsent).length;
+
+                double percentAsDouble = total > 0 ? (present / total * 100) : 0.0;
+                String percent = percentAsDouble.toStringAsFixed(2);
+
+                // //homescreen widget
+                // HomeWidget.saveWidgetData<String>('percent', percent);
+                // HomeWidget.saveWidgetData<int>('present', present);
+                // HomeWidget.saveWidgetData<int>('total', total);
+                // //widget1
+                // HomeWidget.updateWidget(
+                //   name: 'HomeScreenWidgetProvider',
+                //   androidName: 'HomeScreenWidgetProvider'
+                // );
+                // //widget2
+                // HomeWidget.updateWidget(
+                //     name: 'HomeScreenWidgetAltProvider',
+                //     androidName: 'HomeScreenWidgetAltProvider'
+                // );
+
+
+                int allowedMisses = ((present / 0.75).floor() - total)
+                    .clamp(0, double.infinity)
+                    .toInt();
+
+                int requiredPresents = 0;
+                if (percentAsDouble < 75.0) {
+                  requiredPresents = ((0.75 * total - present) / 0.25).ceil();
+                }
+
+                return _bg(
+                  RefreshIndicator(
+                    color: const Color(0xFF2E9E5B),
+                    backgroundColor: const Color(0xFF1E2235),
+                    onRefresh: () async {
+                      context.read<ProfileBloc>().add(FetchProfile());
+                      context.read<AttendanceBloc>().add(LoadSemestersAndAttendance());
+
+                      await context.read<AttendanceBloc>().stream.firstWhere(
+                            (s) => !s.isLoading,
+                      );
+                    },
+
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 124),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ── Header ──
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 40),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Hello,\n'
+                                              '${profile.fullName}',
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            // Text(
+                                            //   profile.collegeEmail,
+                                            //   style: TextStyle(
+                                            //     color: Colors.white.withOpacity(0.5),
+                                            //     fontSize: 14,
+                                            //   ),
+                                            //   overflow: TextOverflow.ellipsis,
+                                            // ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-
-                                    // Foreground content on top of Lottie
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        children: [
-                                          const SizedBox(height: 40),
-                                          Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              IconButton(
-                                                onPressed: () {
-                                                  Scaffold.of(context).openDrawer();
-                                                },
+                                      const SizedBox(width: 20),
+                    
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: BackdropFilter(
+                                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => BackgroundSelectorScreen(
+                                                    onSelected: widget.onBackgroundSelected,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(0.08),
+                                                shape: BoxShape.circle,
+                                                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                                              ),
+                                              child: const Icon(
+                                                Icons.auto_awesome_outlined,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                    
+                                      const SizedBox(width: 10),
+                    
+                                      Theme(
+                                        data: Theme.of(context).copyWith(
+                                          canvasColor: const Color(0xFF1E2235).withOpacity(0.9),
+                                        ),
+                                        child: SizedBox(
+                                          width: 105,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(30),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                              child: DropdownButtonFormField<int>(
+                                                value: state.selectedSemesterId,
                                                 icon: const Icon(
-                                                  Icons.menu,
+                                                    Icons.keyboard_arrow_down_rounded,
+                                                    color: Colors.white),
+                                                decoration: InputDecoration(
+                                                  border: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(30),
+                                                    borderSide: BorderSide(
+                                                        color: Colors.white.withOpacity(0.15)),
+                                                  ),
+                                                  enabledBorder: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(30),
+                                                    borderSide: BorderSide(
+                                                        color: Colors.white.withOpacity(0.15)),
+                                                  ),
+                                                  focusedBorder: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(30),
+                                                    borderSide: BorderSide(
+                                                        color: Colors.white.withOpacity(0.25)),
+                                                  ),
+                                                  isDense: true,
+                                                  contentPadding: const EdgeInsets.symmetric(
+                                                      horizontal: 16, vertical: 12),
+                                                  filled: true,
+                                                  fillColor: Colors.white.withOpacity(0.08),
+                                                ),
+                                                style: const TextStyle(
                                                   color: Colors.white,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                items: state.semesters
+                                                    .map((sem) => DropdownMenuItem(
+                                                  value: sem.id,
+                                                  child: Text(
+                                                    sem.name.replaceFirst('Semester', 'Sem'),
+                                                    style: const TextStyle(color: Colors.white),
+                                                  ),
+                                                ))
+                                                    .toList(),
+                                                onChanged: (id) => bloc.add(ChangeSemester(id!)),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                    
+                            const SizedBox(height: 40),
+                    
+                            // ── Attendance analytics card ──
+                            if (!state.isLoading)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: Colors.white.withOpacity(0.05),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.1),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'ATTENDANCE ANALYTICS',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white.withOpacity(0.5),
+                                                  letterSpacing: 1.2,
                                                 ),
                                               ),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                              Icon(Icons.show_chart_rounded,
+                                                  color: Colors.white.withOpacity(0.4), size: 20),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 20),
+                                          Row(
+                                            children: [
+                                              SizedBox(
+                                                width: 120,
+                                                height: 120,
+                                                child: Stack(
+                                                  alignment: Alignment.center,
                                                   children: [
-                                                    Text(
-                                                      'Hello, ${profile.fullName}',
-                                                      style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: Colors.white,
-                                                      ),
+                                                    Circlify(
+                                                      segmentWidth: 10,
+                                                      labelStyle: const TextStyle(fontSize: 0),
+                                                      items: [
+                                                        CirclifyItem(
+                                                          id: '2',
+                                                          color: const Color(0xFF7B6FF0),
+                                                          value: double.parse(percent),
+                                                          label: '',
+                                                        ),
+                                                        CirclifyItem(
+                                                          id: '1',
+                                                          color: Colors.white.withOpacity(0.08),
+                                                          value: 100 - double.parse(percent),
+                                                          label: '',
+                                                        ),
+                                                      ],
                                                     ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      profile.collegeEmail,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
+                                                    RichText(
+                                                      text: TextSpan(
+                                                        children: [
+                                                          TextSpan(
+                                                            text: percent,
+                                                            style: const TextStyle(
+                                                              fontSize: 22,
+                                                              fontWeight: FontWeight.w700,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                          const TextSpan(
+                                                            text: '%',
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.w400,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
-                                                      overflow: TextOverflow.ellipsis,
                                                     ),
                                                   ],
                                                 ),
                                               ),
-                                              const SizedBox(width: 20),
-                                              Theme(
-                                                data: Theme.of(context).copyWith(
-                                                  canvasColor: Colors.grey[850],
-                                                ),
-                                                child: SizedBox(
-                                                  width: 140,
-                                                  child: DropdownButtonFormField<int>(
-                                                    value: state.selectedSemesterId,
-                                                    decoration: const InputDecoration(
-                                                      labelText: "Sem",
-                                                      border: OutlineInputBorder(),
-                                                      isDense: true,
-                                                      contentPadding:
-                                                          EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        _statBox('$present', 'PRESENT',
+                                                            const Color(0xFF2E9E5B),
+                                                            const Color(0xFF1A2E22)),
+                                                        const SizedBox(width: 10),
+                                                        _statBox('${total - present}', 'ABSENT',
+                                                            const Color(0xFFE53935),
+                                                            const Color(0xFF2E1A1A)),
+                                                      ],
                                                     ),
-                                                    items: state.semesters
-                                                        .map(
-                                                          (sem) => DropdownMenuItem(
-                                                            value: sem.id,
-                                                            child: Text(
-                                                              sem.name,
-                                                              style: const TextStyle(color: Colors.white),
-                                                            ),
-                                                          ),
-                                                        )
-                                                        .toList(),
-                                                    onChanged: (id) => bloc.add(ChangeSemester(id!)),
-                                                  ),
+                                                    const SizedBox(height: 10),
+                                                    Row(
+                                                      children: [
+                                                        _statBox('$total', 'TOTAL', Colors.white,
+                                                            Colors.white.withOpacity(0.06)),
+                                                        const SizedBox(width: 10),
+                                                        _statBox(
+                                                          percentAsDouble >= 75
+                                                              ? '$allowedMisses'
+                                                              : '$requiredPresents',
+                                                          percentAsDouble >= 75
+                                                              ? 'MISS UP TO'
+                                                              : 'NEED TO ATTEND',
+                                                          const Color(0xFF7B6FF0),
+                                                          const Color(0xFF1E1A2E),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ],
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 14, vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.05),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(
+                                                  color: Colors.white.withOpacity(0.08)),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  percentAsDouble >= 75
+                                                      ? Icons.verified_outlined
+                                                      : Icons.warning_amber_rounded,
+                                                  color: percentAsDouble >= 75
+                                                      ? const Color(0xFF2E9E5B)
+                                                      : const Color(0xFFE53935),
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Expanded(
+                                                  child: Text.rich(
+                                                    TextSpan(
+                                                      style: const TextStyle(
+                                                          fontSize: 13, color: Colors.white70),
+                                                      children: percentAsDouble >= 75
+                                                          ? [
+                                                        const TextSpan(
+                                                            text: 'Your attendance is '),
+                                                        TextSpan(
+                                                          text:
+                                                          '${(percentAsDouble - 75).toStringAsFixed(2)}% above',
+                                                          style: const TextStyle(
+                                                              color: Color(0xFF2E9E5B),
+                                                              fontWeight: FontWeight.w600),
+                                                        ),
+                                                        const TextSpan(
+                                                            text: ' the minimum requirement.'),
+                                                      ]
+                                                          : [
+                                                        const TextSpan(
+                                                            text: 'Your attendance is '),
+                                                        TextSpan(
+                                                          text:
+                                                          '${(75 - percentAsDouble).toStringAsFixed(2)}% below',
+                                                          style: const TextStyle(
+                                                              color: Color(0xFFE53935),
+                                                              fontWeight: FontWeight.w600),
+                                                        ),
+                                                        const TextSpan(
+                                                            text: ' the minimum requirement.'),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
+                                  ),
+                                ),
+                              ),
+                    
+                            const SizedBox(height: 24),
+                    
+                            // ── All Subjects header ──
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 8.0),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'All Subjects',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'ATTENDANCE OVERVIEW',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.4),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
                                   ],
                                 ),
-
-                                const SizedBox(height: 40),
-
-                                // Bottom section (no Lottie background)
-                                if (!state.isLoading)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    child: Card(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      elevation: 15,
-                                      color: const Color(0xFF2C2C2C).withOpacity(0.8),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Expanded(
-                                              flex: 2,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  const Text(
-                                                    "Overall Attendance",
-                                                    style: TextStyle(
-                                                      fontSize: 22,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Text(
-                                                    "Total Classes: $total",
-                                                    style:
-                                                        const TextStyle(color: Colors.white70, fontSize: 16),
-                                                  ),
-                                                  Text(
-                                                    "Total Presents: $present",
-                                                    style:
-                                                        const TextStyle(color: Colors.white70, fontSize: 16),
-                                                  ),
-                                                  Text(
-                                                    "Overall Percentage: $percent%",
-                                                    style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      color: double.parse(percent) < 75
-                                                          ? Colors.red
-                                                          : Colors.green,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            SizedBox(
-                                              width: 120,
-                                              height: 120,
-                                              child: Stack(
-                                                alignment: Alignment.center,
-                                                children: [
-                                                  Circlify(
-                                                    segmentWidth: 10,
-                                                    labelStyle: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.w700,
-                                                    ),
-                                                    items: [
-                                                      CirclifyItem(
-                                                        id: '2',
-                                                        color: Colors.green,
-                                                        value: (present / total) * 100,
-                                                        label: '',
-                                                      ),
-                                                      CirclifyItem(
-                                                        id: '1',
-                                                        color: Colors.red,
-                                                        value: 100 - ((present / total) * 100),
-                                                        label: '',
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Text(
-                                                    "${((present / total) * 100).toStringAsFixed(2)}%",
-                                                    style: const TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.w300,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-
-
-                          const SizedBox(height: 0),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: 8.0,
-                            ),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "Your Statistics",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600,
-                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 1),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  // Orange Bordered Card
-                                  SizedBox(
-                                    width: 200,
-                                    height: 200,
-                                    child: Card(
-                                      color: Colors.black, // Background color black
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        side: const BorderSide(
-                                          color: Colors.orange, // Border color
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            const Spacer(),
-                                            Image.asset(
-                                              'assets/org.png',
-                                              height: 50,
-                                              width: 50,
-                                              fit: BoxFit.contain,
-                                            ),
-                                            const SizedBox(height: 10),
-                                            const Text(
-                                              'Organization',
-                                              style: TextStyle(
-                                                color: Colors.orange, // Text color same as border
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            const Text(
-                                              'AKGEC, Ghaziabad',
-                                              style: TextStyle(
-                                                color: Colors.orangeAccent,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            const Spacer(),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-
-                                  // Blue Bordered Card
-                                  SizedBox(
-                                    width: 200,
-                                    height: 200,
-                                    child: Card(
-                                      color: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        side: const BorderSide(
-                                          color: Colors.blue,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            const Spacer(),
-                                            ClipOval(
-                                              child: Image.asset(
-                                                'assets/course1.jpg',
-                                                height: 50,
-                                                width: 50,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 10),
-                                            const Text(
-                                              'Course',
-                                              style: TextStyle(
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            const Text(
-                                              'B.Tech.',
-                                              style: TextStyle(
-                                                color: Colors.lightBlueAccent,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            const Spacer(),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-
-                                  // Green Bordered Card
-                                  SizedBox(
-                                      width: 200,
-                                      height: 200,
-                                      child: Card(
-                                        color: Colors.black,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                          side: const BorderSide(
-                                            color: Colors.green,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              const Spacer(),
-                                              Icon(
-                                                percentAsDouble >= 75 ? Icons.check_circle : Icons.warning,
-                                                size: 50,
-                                                color: percentAsDouble >= 75 ? Colors.green : Colors.red,
-                                              ),
-                                              const SizedBox(height: 10),
-                                              Text(
-                                                percentAsDouble >= 75 ? 'Above 75% :)' : 'Below 75%',
-                                                style: TextStyle(
-                                                  color: percentAsDouble >= 75 ? Colors.green : Colors.red,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                percentAsDouble >= 75
-                                                    ? 'You can miss\n$allowedMisses class${allowedMisses == 1 ? '' : 'es'}'
-                                                    : 'Attend $requiredPresents more class${requiredPresents == 1 ? '' : 'es'} to reach 75%',
-                                                style: const TextStyle(
-                                                  color: Colors.greenAccent,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              const Spacer(),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    )
-
-                                ],
-                              )
-
-
-                            ),
-                          ),
-                          //const SizedBox(height: 20),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: 8.0,
-                            ),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "All Subjects",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          state.isLoading
-                              ? const Center(child: CircularProgressIndicator())
-                              : grouped.isEmpty
-                              ? const Center(child: Text("No subjects found."))
-                              : ListView(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                children:
-                                    grouped.entries.map((e) {
-                                      final subject = e.key;
-                                      final entries = e.value;
-                                      final total = entries.length;
-                                      final present =
-                                          entries
-                                              .where((el) => !el.isAbsent)
-                                              .length;
-                                      final percent =
-                                          total > 0
-                                              ? (present / total * 100)
-                                                  .toStringAsFixed(2)
-                                              : "0.00";
-
-                                      final groupedByDate = groupByDate(
-                                        state.attendance,
-                                        subject,
-                                      );
-
-                                      return SubjectAttendanceTile(
-                                            subject: subject,
-                                            present: present,
-                                            total: total,
-                                            percent: percent,
-                                            groupedByDate: groupedByDate,
-                                          );
-                                        }).toList(),/* Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                gradient: const LinearGradient(
-                                  colors: [Color.fromARGB(255, 172, 127, 209), Color.fromARGB(255, 192, 178, 196)], // You can customize colors
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                              ),
-                              child: Container(
-                                margin: const EdgeInsets.all(2), // Thickness of gradient border
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1E1E1E), // Slightly darker than before for better contrast
-                                  borderRadius: BorderRadius.circular(13),
-                                ),
-                                child: Theme(
-                                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                  child: ExpansionTile(
-                                    title: Text(
-                                      subject,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      "Present: $present / $total   ($percent%)",
+                    
+                            // ── Subject list ──
+                            state.isLoading
+                                ? const Center(
+                                child: CircularProgressIndicator(
+                                    color: Color(0xFF2E9E5B)))
+                                : state.errorMessage != null
+                                ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32),
+                                child: Column(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.wifi_off_rounded,
+                                        size: 48,
+                                        color:
+                                        Colors.white.withOpacity(0.2)),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      state.errorMessage!,
                                       style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: double.parse(percent) < 75 ? Colors.red : Colors.green,
-                                      ),
+                                          color:
+                                          Colors.white.withOpacity(0.7),
+                                          fontSize: 14),
+                                      textAlign: TextAlign.center,
                                     ),
-                                    children: [
-                                      if (groupedByDate.isEmpty)
-                                        const ListTile(
-                                          title: Text(
-                                            "No attendance data.",
-                                            style: TextStyle(color: Colors.white),
-                                          ),
-                                        )
-                                      else
-                                        ...groupedByDate.map((item) {
-                                          final status = item['status']!;
-                                          return ListTile(
-                                            leading: Icon(
-                                              status.contains('A') ? Icons.cancel : Icons.check_circle,
-                                              color: status.contains('A') ? Colors.red : Colors.green,
-                                            ),
-                                            title: Text(
-                                              "${item['date']} - $status",
-                                              style: const TextStyle(color: Colors.white),
-                                            ),
-                                          );
-                                        }).toList(),
-                                    ],
-                                  ),
+                                    const SizedBox(height: 12),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        context.read<ProfileBloc>().add(FetchProfile());
+                                        context.read<AttendanceBloc>().add(LoadSemestersAndAttendance());
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                        const Color(0xFF2E9E5B),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(12)),
+                                      ),
+                                      child: const Text('Retry',
+                                          style: TextStyle(
+                                              color: Colors.white)),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );*/
-
-                                  //  }).toList(),
-                              ),
-                        ],
+                            )
+                                : grouped.isEmpty
+                                ? const Center(
+                                child: Text("No subjects found.",
+                                    style: TextStyle(
+                                        color: Colors.white54)))
+                                : ListView(
+                              cacheExtent: 500,
+                              shrinkWrap: true,
+                              physics:
+                              const NeverScrollableScrollPhysics(),
+                              children: grouped.entries.map((e) {
+                                final subject = e.key;
+                                final entries = e.value;
+                                final total = entries.length;
+                                final present = entries
+                                    .where((el) => !el.isAbsent)
+                                    .length;
+                                final percent = total > 0
+                                    ? (present / total * 100)
+                                    .toStringAsFixed(2)
+                                    : "0.00";
+                                final groupedByDate =
+                                groupByDate(state.attendance, subject);
+                                return SubjectAttendanceTile(
+                                  subject: subject,
+                                  present: present,
+                                  total: total,
+                                  percent: percent,
+                                  groupedByDate: groupedByDate,
+                                );
+                              }).toList(),
+                            ),
+                    
+                            if (!state.isLoading && state.errorMessage == null) ...[
+                              const AppFooter(),
+                              //const SizedBox(height: 5),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
-                  );
-                },
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-      ),
+                  ),
+                );
+              },
+            );
+          }
+
+          if (profileState is ProfileError) {
+            return _bg(
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.wifi_off_rounded,
+                        size: 64, color: Colors.white.withOpacity(0.2)),
+                    const SizedBox(height: 16),
+                    Text(
+                      profileState.error,
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.7), fontSize: 15),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<ProfileBloc>().add(FetchProfile());
+                        context.read<AttendanceBloc>().add(LoadSemestersAndAttendance());
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E9E5B),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Retry',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Default loading
+          return _bg(
+            const Center(
+              child: CircularProgressIndicator(color: Color(0xFF2E9E5B)),
+            ),
+          );
+        },
     );
   }
 }
 
-Drawer _buildDrawer(BuildContext context) {
-  return Drawer(
+Widget _statBox(String value, String label, Color valueColor, Color bgColor) {
+  return Expanded(
     child: Container(
-      color: Colors.black,
-      child: ListView(
-        padding: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.grey, Colors.black54],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.transparent),
-
-              child: Center(
-                child: Text(
-                  'Menu',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
-                ),
-              ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
             ),
           ),
-
-          _drawerItem(context, 'Profile', Icons.person, () {
-            final authState = BlocProvider.of<AuthBloc>(context).state;
-
-            if (authState is AuthSuccess) {
-              final loginResponse = LoginResponse(
-                accessToken: authState.accessToken,
-                sessionId: authState.sessionId,
-                xUserId: authState.xUserId,
-                xToken: authState.xToken,
-              );
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (_) => BlocProvider(
-                        create:
-                            (_) => ProfileBloc(
-                              profileRepository: ProfileRepository(),
-                              loginResponse: loginResponse,
-                            )..add(FetchProfile()),
-                        child: const ProfileScreen(),
-                      ),
-                ),
-              );
-            }
-          }),
-          _drawerItem(context, 'Assignment', Icons.assignment, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AssignmentScreen()),
-            );
-          }),
-
-          _drawerItem(context, 'E-Identity', Icons.badge, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EIdentityScreen()),
-            );
-          }),
-          _drawerItem(context, 'PDP', Icons.badge, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const Pdp()),
-            );
-          }),
-          // _drawerItem(context, 'Calendar', Icons.calendar_month, () {
-          //   Navigator.push(
-          //     context,
-          //     MaterialPageRoute(builder: (_) => const CalendarScreen()),
-          //   );
-          // }),
-          _drawerItem(context, 'Sign Out', Icons.logout, () async {
-            final storage = FlutterSecureStorage();
-
-            // Delete the stored session and authentication data
-            await storage.delete(key: 'accessToken');
-            await storage.delete(key: 'sessionId');
-            await storage.delete(key: 'xUserId');
-            await storage.delete(key: 'xToken');
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
-              (Route<dynamic> route) => false,
-            );
-          }),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withOpacity(0.4),
+              letterSpacing: 0.8,
+            ),
+          ),
         ],
       ),
     ),
-  );
-}
-
-ListTile _drawerItem(
-  BuildContext context,
-  String title,
-  IconData icon,
-  VoidCallback onTap,
-) {
-  return ListTile(
-    leading: Icon(icon, color: Colors.white),
-    title: Text(title, style: TextStyle(color: Colors.white)),
-    onTap: () {
-      Navigator.pop(context);
-      onTap();
-    },
   );
 }

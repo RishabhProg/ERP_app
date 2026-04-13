@@ -32,7 +32,13 @@ dependencies:
     sdk: flutter
   lottie: ^3.3.1  
   fl_chart: ^0.71.0
-  
+  barcode_widget: ^2.0.3
+  firebase_core: ^3.0.0
+  cloud_firestore: ^5.0.0
+  package_info_plus: ^9.0.0
+  home_widget:
+  firebase_remote_config: ^5.0.0
+  url_launcher: ^6.3.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -61,11 +67,11 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/graduation-hat.png"
+  image_path: "assets/icon.png"
   min_sdk_android: 21
   remove_alpha_ios: true
   adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: "assets/graduation-hat.png"    
+  adaptive_icon_foreground: "assets/icon.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -84,12 +90,21 @@ flutter:
     - assets/animation.json
     - assets/loginback.json
     - assets/night.json
+    - assets/train.json
+    - assets/valley.json
+    - assets/planet.json
     - assets/centerimage2.jpeg
     - assets/animation2.json
     - assets/back1.json
     - assets/org.png
     - assets/course1.jpg
     - assets/graduation-hat.png
+    - assets/Gradient Dots Background.json
+    - assets/app_loader1.png
+    - assets/line loader.json
+    - assets/Loading.json
+    - assets/lock_back.png
+    - assets/icon.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
